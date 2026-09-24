@@ -1,0 +1,18 @@
+# S500 quad, X frame (same layout as stock Iris)
+FRAME_CLASS      1
+FRAME_TYPE       1
+
+# Matches servo_min/servo_max in the ArduPilotPlugin motor control blocks
+MOT_PWM_MIN      1100
+MOT_PWM_MAX      1900
+
+# No gimbal on this airframe (project doc Section 5 hardware list has
+# none), so the MNT1_*, RC6-8 gimbal options, and SERVO9-11 mount
+# function lines from gazebo-iris-gimbal.parm are intentionally
+# omitted here.
+
+# Battery capacity as ArduPilot itself understands it (used for
+# remaining-% reporting and low-battery failsafe), separate from the
+# Gazebo LinearBatteryPlugin's <capacity> tag in model.sdf, which
+# governs the physically simulated drain. Units: mAh here, Ah there.
+BATT_CAPACITY    6200

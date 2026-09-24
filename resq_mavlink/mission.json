@@ -1,0 +1,13 @@
+{
+  "mission_id": "RESQ-001",
+  "target": {
+    "latitude": -35.3631272,
+    "longitude": 149.1653367,
+    "altitude": 10
+  },
+  "search": {
+    "width_m": 40,
+    "height_m": 40,
+    "altitude_m": 8
+  }
+}

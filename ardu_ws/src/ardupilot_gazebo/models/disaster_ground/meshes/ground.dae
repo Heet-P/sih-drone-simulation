@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
+  <library_images><image id="img"><init_from>../materials/textures/disaster_ground.jpg</init_from></image></library_images>
+  <library_effects><effect id="fx"><profile_COMMON>
+    <newparam sid="surf"><surface type="2D"><init_from>img</init_from></surface></newparam>
+    <newparam sid="samp"><sampler2D><source>surf</source></sampler2D></newparam>
+    <technique sid="common"><lambert><diffuse><texture texture="samp" texcoord="UV"/></diffuse></lambert></technique>
+  </profile_COMMON></effect></library_effects>
+  <library_materials><material id="mat"><instance_effect url="#fx"/></material></library_materials>
+  <library_geometries><geometry id="g"><mesh>
+    <source id="p"><float_array id="p-a" count="12">-150 -150 0 150 -150 0 150 150 0 -150 150 0</float_array>
+      <technique_common><accessor source="#p-a" count="4" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+    <source id="n"><float_array id="n-a" count="3">0 0 1</float_array>
+      <technique_common><accessor source="#n-a" count="1" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+    <source id="t"><float_array id="t-a" count="8">0 0 15 0 15 15 0 15</float_array>
+      <technique_common><accessor source="#t-a" count="4" stride="2"><param name="S" type="float"/><param name="T" type="float"/></accessor></technique_common></source>
+    <vertices id="v"><input semantic="POSITION" source="#p"/></vertices>
+    <triangles material="m" count="2">
+      <input semantic="VERTEX" source="#v" offset="0"/><input semantic="NORMAL" source="#n" offset="1"/><input semantic="TEXCOORD" source="#t" offset="2" set="0"/>
+      <p>0 0 0 1 0 1 2 0 2 0 0 0 2 0 2 3 0 3</p>
+    </triangles>
+  </mesh></geometry></library_geometries>
+  <library_visual_scenes><visual_scene id="s"><node id="q"><instance_geometry url="#g"><bind_material><technique_common>
+    <instance_material symbol="m" target="#mat"><bind_vertex_input semantic="UV" input_semantic="TEXCOORD" input_set="0"/></instance_material>
+  </technique_common></bind_material></instance_geometry></node></visual_scene></library_visual_scenes>
+  <scene><instance_visual_scene url="#s"/></scene>
+</COLLADA>

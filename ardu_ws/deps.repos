@@ -1,0 +1,38 @@
+# Upstream repositories the ArduPilot/Gazebo workspace builds against, pinned
+# to the exact commits this project was developed and tested with. They are
+# not committed here (ardupilot alone is ~4 GB). Fetch them with:
+#
+#   cd ardu_ws/src && vcs import --recursive < ../deps.repos
+#   (cd Micro-XRCE-DDS-Gen && git apply ../../patches/Micro-XRCE-DDS-Gen-gradle.patch)
+#
+# ardupilot_gz and ardupilot_gazebo are committed in this repo (they carry
+# the project's launch files, worlds and models). They were forked from
+# https://github.com/ArduPilot/ardupilot_gz.git @ 8df4dc1726e37504e6fc8b952d02e554cfa3176f (main)
+# https://github.com/ArduPilot/ardupilot_gazebo.git @ cc0290d964dfa373531963a8fc39093a0836af0a (ros2)
+# and ardu_ws/patches/*-local-changes.patch record the edits to their
+# upstream files.
+repositories:
+  ardupilot:
+    type: git
+    url: https://github.com/ArduPilot/ardupilot.git
+    version: 582a71193ad2ed2d47e6723a53380447b0038a02
+  ros_gz:
+    type: git
+    url: https://github.com/gazebosim/ros_gz.git
+    version: da0bfdd62f2a442ff1d021622c72fe29b7aa4508
+  ardupilot_sitl_models:
+    type: git
+    url: https://github.com/ArduPilot/SITL_Models.git
+    version: d5d6017367a509b77886379c91207edc66f77652
+  micro_ros_agent:
+    type: git
+    url: https://github.com/micro-ROS/micro-ROS-Agent.git
+    version: 4f363a79ae96aed39dcc5269f53f73f6a70d3a2c
+  Micro-XRCE-DDS-Gen:
+    type: git
+    url: https://github.com/ardupilot/Micro-XRCE-DDS-Gen.git
+    version: b8840058b81c87e1169a5a0ed4744d7b3dc99e0b
+  sdformat_urdf:
+    type: git
+    url: https://github.com/ros/sdformat_urdf.git
+    version: 7b73ddb8af07b8dd5cee5fa8231e982f4ad8c217

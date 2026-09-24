@@ -1,0 +1,386 @@
+<?xml version="1.0" ?>
+<!--
+  Post-disaster search-and-rescue world (earthquake aftermath).
+
+  Same frame, lights, casualty, heat body and payload as runway.sdf, so
+  mission.json, the mission bridge (SUN_DIRECTION_ENU, flat-ground
+  projection) and the command center's day/night switching work
+  unchanged; only the world name differs (/world/disaster/...).
+
+  Layout, world ENU (x = east, y = north), drone spawn at the origin:
+  - Search grid (mission.json): 40x40 m centred on (9, 15), i.e.
+    x -11..29, y -5..35, flown at 8 m.
+  - Everything INSIDE the grid (plus a 4 m margin) is under 3 m tall:
+    wrecked cars, a fallen telephone pole, rubble, blocks, planks,
+    pallets, barrels. Nothing the drone can hit at 8 m.
+  - The collapsed buildings (up to 24 m tall) ring the grid outside
+    that margin, where the edge lanes' camera footprint (about 5.5 m
+    either side of the lane at 8 m) still catches them.
+  - Kept clear: 4 m around the spawn (takeoff / RTL), and 3 m around
+    the casualty and the landing spot 2.5 m from them toward home,
+    about (8.6, 12.9).
+  - Distractors for the detectors: the drone's shadow falls on rubble
+    and debris instead of a uniform runway, the ground is cracked and
+    uneven in colour, a rubble spill lies at the casualty's feet, and a
+    smouldering debris pile (330-360 K) sits in the grid 18 m from the
+    casualty, for the thermal model.
+-->
+<sdf version="1.9">
+  <world name="disaster">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-air-pressure-system"
+      name="gz::sim::systems::AirPressure">
+    </plugin>
+    <plugin filename="gz-sim-air-speed-system"
+      name="gz::sim::systems::AirSpeed">
+    </plugin>
+    <plugin filename="gz-sim-altimeter-system"
+      name="gz::sim::systems::Altimeter">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-magnetometer-system"
+      name="gz::sim::systems::Magnetometer">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+    <plugin filename="gz-sim-particle-emitter-system"
+      name="gz::sim::systems::ParticleEmitter">
+    </plugin>
+
+    <!-- Lighting identical to runway.sdf (see the notes there): low
+         ambient + shadowless "fill" + "sun", so the command center's
+         day/night switch applies the same values. Hazy grey-brown sky
+         for the dust in the air. -->
+    <scene>
+      <ambient>0.15 0.15 0.15</ambient>
+      <background>0.62 0.58 0.52</background>
+      <sky></sky>
+    </scene>
+
+    <light type="directional" name="fill">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.4 0.4 0.4 1</diffuse>
+      <specular>0 0 0 1</specular>
+      <direction>0 0 -1</direction>
+    </light>
+
+    <!-- Background temperature for the thermal camera (15 C). -->
+    <atmosphere type="adiabatic">
+      <temperature>288</temperature>
+      <temperature_gradient>-0.0065</temperature_gradient>
+    </atmosphere>
+
+    <!-- Must match SUN_DIRECTION_ENU in mavlink_bridge.py. -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.7 0.7 0.7 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.3632621</latitude_deg>
+      <longitude_deg>149.1652374</longitude_deg>
+      <elevation>10.0</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <include>
+      <uri>model://disaster_ground</uri>
+    </include>
+
+    <!-- ============ Collapsed buildings (outside the flight area) ============ -->
+
+    <!-- West: police station, 8.9 m tall, spans x -39.8..-20.2 -->
+    <include>
+      <name>collapsed_police_station</name>
+      <uri>model://collapsed_police_station</uri>
+      <pose>-30 15 0 0 0 0</pose>
+    </include>
+
+    <!-- North: fire station, 12.5 m tall, spans y 43.9..62 -->
+    <include>
+      <name>collapsed_fire_station</name>
+      <uri>model://collapsed_fire_station</uri>
+      <pose>9 53 0 0 0 0</pose>
+    </include>
+
+    <!-- East: industrial building, 24 m tall, spans x 37.3..60.4. Still burning. -->
+    <include>
+      <name>collapsed_industrial</name>
+      <uri>model://collapsed_industrial</uri>
+      <pose>48 22 0 0 0 0</pose>
+    </include>
+
+    <!-- South and corners: houses, 5.8 m tall -->
+    <include>
+      <name>collapsed_house_south</name>
+      <uri>model://collapsed_house</uri>
+      <pose>14 -22 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>collapsed_house_southwest</name>
+      <uri>model://collapsed_house</uri>
+      <pose>-30 -20 0 0 0 0.35</pose>
+    </include>
+    <include>
+      <name>collapsed_house_southeast</name>
+      <uri>model://collapsed_house</uri>
+      <pose>46 -18 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <name>collapsed_house_northwest</name>
+      <uri>model://collapsed_house</uri>
+      <pose>-30 50 0 0 0 -0.3</pose>
+    </include>
+
+    <!-- Smoke from the burning buildings -->
+    <include>
+      <name>smoke_industrial</name>
+      <uri>model://smoke_plume</uri>
+      <pose>46 20 6 0 0 0</pose>
+    </include>
+    <include>
+      <name>smoke_industrial_2</name>
+      <uri>model://smoke_plume</uri>
+      <pose>54 27 3 0 0 0</pose>
+    </include>
+    <include>
+      <name>smoke_fire_station</name>
+      <uri>model://smoke_plume</uri>
+      <pose>2 56 4 0 0 0</pose>
+    </include>
+
+
+    <!-- ============ Response staging, south-west of the spawn ============ -->
+    <!-- Every object here and in the debris field is static. The cones and
+         barrels are dynamic in gazebo_models and collide only through
+         meshes, which DART can't build, so they fell through the ground
+         forever and cut the real-time factor to ~0.3 with stalls (the drone
+         moved in jerks). -->
+
+    <include>
+      <name>ambulance</name>
+      <uri>model://ambulance</uri>
+      <pose>-9 -3 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <name>fire_truck</name>
+      <uri>model://fire_truck</uri>
+      <pose>-6 -16 0 0 0 0.1</pose>
+    </include>
+    <include><name>barrier_1</name><uri>model://jersey_barrier</uri><pose>3 -8 0 0 0 0</pose></include>
+    <include><name>barrier_2</name><uri>model://jersey_barrier</uri><pose>7.5 -8.3 0 0 0 -0.1</pose></include>
+    <include><name>barrier_3</name><uri>model://jersey_barrier</uri><pose>12 -7.8 0 0 0 0.25</pose></include>
+    <include><name>cone_1</name><uri>model://construction_cone</uri><pose>4.5 -4.5 0 0 0 0</pose><static>true</static></include>
+    <include><name>cone_2</name><uri>model://construction_cone</uri><pose>-4.5 -4.5 0 0 0 0</pose><static>true</static></include>
+    <include><name>cone_3</name><uri>model://construction_cone</uri><pose>-4.5 4.5 0 0 0 0</pose><static>true</static></include>
+    <include><name>barrel_1</name><uri>model://construction_barrel</uri><pose>-12 6 0 0 0 0</pose><static>true</static></include>
+    <include><name>barrel_2</name><uri>model://construction_barrel</uri><pose>-11 8 0 0 0 0</pose><static>true</static></include>
+    <include><name>hydrant</name><uri>model://fire_hydrant</uri><pose>-3 -6.5 0 0 0 0</pose></include>
+
+    <!-- ============ Debris field inside the search grid (all < 3 m) ============ -->
+
+    <!-- Rubble mounds (irregular, up to ~0.9 m high) and broken
+         concrete slabs tilted on them. -->
+    <model name="rubble">
+      <static>true</static>
+      <link name="link">
+        <visual name="m1"><pose>16.5 20.5 0 0 0 0.4</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>3.5 2.5 1.6</scale></mesh></geometry></visual>
+        <collision name="m1_c"><pose>16.5 20.5 0 0 0 0.4</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>3.5 2.5 1.6</scale></mesh></geometry></collision>
+        <visual name="m2"><pose>4.0 22.5 0 0 0 -0.3</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>3.0 3.0 1.4</scale></mesh></geometry></visual>
+        <collision name="m2_c"><pose>4.0 22.5 0 0 0 -0.3</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>3.0 3.0 1.4</scale></mesh></geometry></collision>
+        <visual name="m3"><pose>-6.0 14.0 0 0 0 0.1</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>4.0 5.0 2.0</scale></mesh></geometry></visual>
+        <collision name="m3_c"><pose>-6.0 14.0 0 0 0 0.1</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>4.0 5.0 2.0</scale></mesh></geometry></collision>
+        <visual name="m4"><pose>24.0 12.0 0 0 0 0.8</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_3.dae</uri><scale>3.0 4.5 1.8</scale></mesh></geometry></visual>
+        <collision name="m4_c"><pose>24.0 12.0 0 0 0 0.8</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_3.dae</uri><scale>3.0 4.5 1.8</scale></mesh></geometry></collision>
+        <visual name="m5"><pose>10.0 30.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>6.0 3.0 1.5</scale></mesh></geometry></visual>
+        <collision name="m5_c"><pose>10.0 30.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>6.0 3.0 1.5</scale></mesh></geometry></collision>
+        <visual name="m6"><pose>20.0 1.5 0 0 0 -0.5</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>3.5 2.5 1.2</scale></mesh></geometry></visual>
+        <collision name="m6_c"><pose>20.0 1.5 0 0 0 -0.5</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>3.5 2.5 1.2</scale></mesh></geometry></collision>
+        <visual name="m7"><pose>-15.0 22.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>4.0 10.0 2.5</scale></mesh></geometry></visual>
+        <collision name="m7_c"><pose>-15.0 22.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>4.0 10.0 2.5</scale></mesh></geometry></collision>
+        <visual name="m8"><pose>33.0 24.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_3.dae</uri><scale>4.0 9.0 2.5</scale></mesh></geometry></visual>
+        <collision name="m8_c"><pose>33.0 24.0 0 0 0 0.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_3.dae</uri><scale>4.0 9.0 2.5</scale></mesh></geometry></collision>
+        <visual name="m9"><pose>12.3 16.9 0 0 0 0.9</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>1.3 1.0 1.0</scale></mesh></geometry></visual>
+        <collision name="m9_c"><pose>12.3 16.9 0 0 0 0.9</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_1.dae</uri><scale>1.3 1.0 1.0</scale></mesh></geometry></collision>
+        <visual name="m10"><pose>1.0 33.0 0 0 0 0.5</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>2.5 2.0 1.2</scale></mesh></geometry></visual>
+        <collision name="m10_c"><pose>1.0 33.0 0 0 0 0.5</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_2.dae</uri><scale>2.5 2.0 1.2</scale></mesh></geometry></collision>
+        <visual name="m11"><pose>27.0 33.0 0 0 0 1.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>2.5 3.0 1.4</scale></mesh></geometry></visual>
+        <collision name="m11_c"><pose>27.0 33.0 0 0 0 1.0</pose><geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_0.dae</uri><scale>2.5 3.0 1.4</scale></mesh></geometry></collision>
+        <visual name="s1"><pose>17.0 20.0 0.55 0.0 0.35 0.4</pose><geometry><box><size>2.6 1.8 0.2</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s1_c"><pose>17.0 20.0 0.55 0.0 0.35 0.4</pose><geometry><box><size>2.6 1.8 0.2</size></box></geometry></collision>
+        <visual name="s2"><pose>-5.5 15.0 0.7 0.3 -0.2 1.3</pose><geometry><box><size>3.0 2.0 0.22</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s2_c"><pose>-5.5 15.0 0.7 0.3 -0.2 1.3</pose><geometry><box><size>3.0 2.0 0.22</size></box></geometry></collision>
+        <visual name="s3"><pose>24.5 11.0 0.6 -0.25 0.3 2.2</pose><geometry><box><size>2.2 1.6 0.2</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s3_c"><pose>24.5 11.0 0.6 -0.25 0.3 2.2</pose><geometry><box><size>2.2 1.6 0.2</size></box></geometry></collision>
+        <visual name="s4"><pose>3.0 23.0 0.45 0.2 0.25 -0.6</pose><geometry><box><size>2.0 1.4 0.18</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s4_c"><pose>3.0 23.0 0.45 0.2 0.25 -0.6</pose><geometry><box><size>2.0 1.4 0.18</size></box></geometry></collision>
+        <visual name="s5"><pose>9.0 30.5 0.5 0.0 -0.3 0.1</pose><geometry><box><size>2.8 1.5 0.2</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s5_c"><pose>9.0 30.5 0.5 0.0 -0.3 0.1</pose><geometry><box><size>2.8 1.5 0.2</size></box></geometry></collision>
+        <visual name="s6"><pose>14.8 12.2 0.12 0.0 0.0 0.5</pose><geometry><box><size>1.6 1.1 0.16</size></box></geometry><material><diffuse>1 1 1 1</diffuse><pbr><metal><albedo_map>model://disaster_ground/materials/textures/concrete.jpg</albedo_map><roughness>0.95</roughness><metalness>0</metalness></metal></pbr></material></visual>
+        <collision name="s6_c"><pose>14.8 12.2 0.12 0.0 0.0 0.5</pose><geometry><box><size>1.6 1.1 0.16</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- Wrecked / abandoned vehicles -->
+    <include><name>pickup_wreck</name><uri>model://pickup</uri><pose>22 6 0 0 0 2.3</pose></include>
+    <include><name>suv_wreck</name><uri>model://suv</uri><pose>-4 30 0 0 0 0.3</pose></include>
+    <include><name>hatchback_wreck</name><uri>model://hatchback_red</uri><pose>24 27 0 0 0 -0.6</pose></include>
+    <include><name>dumpster_tipped</name><uri>model://dumpster</uri><pose>-7 22 0 0 0 1.2</pose><static>true</static></include>
+
+    <!-- Fallen telephone pole across the street, and a fallen lamp post -->
+    <include><name>pole_fallen</name><uri>model://telephone_pole</uri><pose>-2 26 0.15 0 1.5708 -0.25</pose></include>
+    <include><name>lamp_fallen</name><uri>model://lamp_post</uri><pose>27 17 0.15 0 1.5708 1.9</pose></include>
+
+    <!-- Loose debris around the casualty (none within 2 m of them) -->
+    <include><name>block_1</name><uri>model://cinder_block</uri><pose>12.8 17.4 0 0 0 0.4</pose><static>true</static></include>
+    <include><name>block_2</name><uri>model://cinder_block</uri><pose>13.3 17.0 0 0 0 1.1</pose><static>true</static></include>
+    <include><name>block_3</name><uri>model://cinder_block_wide</uri><pose>7.0 17.8 0 0 0 -0.3</pose><static>true</static></include>
+    <include><name>block_4</name><uri>model://cinder_block</uri><pose>11.5 18.8 0 0 0 2.0</pose><static>true</static></include>
+    <include><name>block_5</name><uri>model://cinder_block_wide</uri><pose>15.5 19.5 0 0 0 0.7</pose><static>true</static></include>
+    <include><name>block_6</name><uri>model://cinder_block</uri><pose>3.5 20.5 0 0 0 0.2</pose><static>true</static></include>
+    <include><name>plank_1</name><uri>model://drc_practice_2x6</uri><pose>12.5 14.0 0.02 1.5708 0 0.3</pose><static>true</static></include>
+    <include><name>plank_2</name><uri>model://drc_practice_4x4x40</uri><pose>6.8 15.8 0.05 1.5708 0 1.2</pose><static>true</static></include>
+    <include><name>plank_3</name><uri>model://drc_practice_2x6</uri><pose>5.0 23.0 0.02 1.5708 0 -0.8</pose><static>true</static></include>
+    <include><name>slats_1</name><uri>model://drc_practice_wood_slats</uri><pose>14.5 21.5 0 0 0 0.5</pose><static>true</static></include>
+    <include><name>pallet_1</name><uri>model://euro_pallet</uri><pose>6.0 19.8 0 0 0 0.6</pose><static>true</static></include>
+    <include><name>pallet_2</name><uri>model://euro_pallet</uri><pose>18.0 10.0 0 0.2 0 -0.4</pose><static>true</static></include>
+    <include><name>box_1</name><uri>model://cardboard_box</uri><pose>16.5 14.5 0.15 0 0 0.9</pose><static>true</static></include>
+    <include><name>box_2</name><uri>model://cardboard_box</uri><pose>1.5 12.0 0.15 0 0 0.3</pose><static>true</static></include>
+    <include><name>barrel_3</name><uri>model://construction_barrel</uri><pose>19 24 0 1.5708 0 0.5</pose><static>true</static></include>
+
+    <!-- Smouldering debris pile: charred timbers at 330 K (57 C) with
+         glowing embers (360 K), a thermal distractor 18 m from the casualty. -->
+    <model name="smouldering_debris">
+      <static>true</static>
+      <pose>21 31 0 0 0 0.3</pose>
+      <link name="link">
+        <visual name="ash"><pose>0 0 0 0 0 0</pose>
+          <geometry><mesh><uri>model://disaster_ground/meshes/rubble_mound_3.dae</uri><scale>1.5 1.3 0.6</scale></mesh></geometry>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.13 0.12 0.12 1</diffuse><specular>0 0 0 1</specular></material>
+          <plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="beam_1"><pose>0 0 0.28 0 0.08 0</pose><geometry><box><size>2.2 0.25 0.25</size></box></geometry><material><ambient>0.03 0.025 0.02 1</ambient><diffuse>0.05 0.04 0.035 1</diffuse><specular>0 0 0 1</specular></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>330.0</temperature></plugin></visual>
+        <visual name="beam_2"><pose>0.2 0.3 0.45 0.1 0 0.9</pose><geometry><box><size>1.8 0.22 0.22</size></box></geometry><material><ambient>0.03 0.025 0.02 1</ambient><diffuse>0.05 0.04 0.035 1</diffuse><specular>0 0 0 1</specular></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>330.0</temperature></plugin></visual>
+        <visual name="beam_3"><pose>-0.3 -0.2 0.4 0 -0.12 -0.7</pose><geometry><box><size>1.6 0.2 0.2</size></box></geometry><material><ambient>0.03 0.025 0.02 1</ambient><diffuse>0.05 0.04 0.035 1</diffuse><specular>0 0 0 1</specular></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>330.0</temperature></plugin></visual>
+        <visual name="ember_1"><pose>0.3 0.1 0.3 0 0 0.4</pose><geometry><box><size>0.35 0.15 0.08</size></box></geometry><material><ambient>1 0.3 0.05 1</ambient><diffuse>1 0.3 0.05 1</diffuse><emissive>1 0.35 0.05 1</emissive></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>360.0</temperature></plugin></visual>
+        <visual name="ember_2"><pose>-0.5 0.25 0.25 0 0 1.2</pose><geometry><box><size>0.25 0.12 0.08</size></box></geometry><material><ambient>1 0.3 0.05 1</ambient><diffuse>1 0.3 0.05 1</diffuse><emissive>1 0.35 0.05 1</emissive></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>360.0</temperature></plugin></visual>
+        <visual name="ember_3"><pose>0.6 -0.35 0.2 0 0 -0.5</pose><geometry><box><size>0.2 0.2 0.06</size></box></geometry><material><ambient>1 0.3 0.05 1</ambient><diffuse>1 0.3 0.05 1</diffuse><emissive>1 0.35 0.05 1</emissive></material><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>360.0</temperature></plugin></visual>
+      </link>
+    </model>
+
+    <!-- ============ Casualty, heat body, payload (as in runway.sdf) ============ -->
+
+    <!-- Casualty lying face-up in the street among the debris. See
+         runway.sdf for how this actor pose was verified. Position:
+         10 m east, 15 m north of the spawn. -->
+    <actor name="test_person">
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="stand">
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/stand.dae</filename>
+        <scale>1.0</scale>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="0" type="stand">
+          <waypoint>
+            <time>0</time>
+            <pose>10 15 0.15 0 -1.5708 0.7</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>10 15 0.15 0 -1.5708 0.7</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <!-- Body heat for test_person (thermal camera only); must keep the
+         same x/y/yaw as test_person. Copied from runway.sdf. -->
+    <model name="test_person_heat"><static>true</static><pose>10 15 0.15 0 0 0.7</pose>
+      <link name="body">
+        <visual name="head"><pose>-0.55 0 0 0 0 0</pose><geometry><sphere><radius>0.11</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="neck"><pose>-0.42 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.05</radius><length>0.08</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="torso"><pose>-0.15 0 0 0 0 0</pose><geometry><box><size>0.46 0.34 0.2</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="pelvis"><pose>0.12 0 0 0 0 0</pose><geometry><box><size>0.2 0.3 0.18</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="leg_l"><pose>0.6 0.13 0 0 1.5708 0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="leg_r"><pose>0.6 -0.13 0 0 1.5708 -0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="arm_l"><pose>-0.02 0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="arm_r"><pose>-0.02 -0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+      </link>
+    </model>
+
+    <!-- SAR payload package, attached to the drone by its DetachableJoint.
+         Pose matches the default spawn only; see runway.sdf. -->
+    <model name="payload_box">
+      <pose>0 -0.05 0.12 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>0.3</mass>
+          <inertia>
+            <ixx>0.0003</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0003</iyy>
+            <iyz>0</iyz>
+            <izz>0.0003</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.08 0.08 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.9 0.55 0.05 1</ambient>
+            <diffuse>0.9 0.55 0.05 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.08 0.08 0.06</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+  </world>
+</sdf>

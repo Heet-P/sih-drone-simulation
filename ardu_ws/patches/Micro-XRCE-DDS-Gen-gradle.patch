@@ -1,0 +1,9 @@
+diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
+index f398c33..eade29c 100644
+--- a/gradle/wrapper/gradle-wrapper.properties
++++ b/gradle/wrapper/gradle-wrapper.properties
+@@ -4,3 +4,4 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-7.6-bin.zip
+ networkTimeout=10000
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
++networkTimeout=120000

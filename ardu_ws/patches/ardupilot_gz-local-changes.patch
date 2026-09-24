@@ -1,0 +1,191 @@
+diff --git a/ardupilot_gz_bringup/launch/robots/robot.launch.py b/ardupilot_gz_bringup/launch/robots/robot.launch.py
+index 8644489..597b40d 100644
+--- a/ardupilot_gz_bringup/launch/robots/robot.launch.py
++++ b/ardupilot_gz_bringup/launch/robots/robot.launch.py
+@@ -198,7 +198,7 @@ def launch_sitl_dds(context: LaunchContext) -> List[LaunchDescriptionEntity]:
+     # ardupilot_sitl
+     sitl_arguments = {
+       "command": command,
+-      "wipe": "False",
++      "wipe": LaunchConfiguration("wipe"),
+       "speedup": "1",
+       "slave": "0",
+       "instance": f"{instance}",
+@@ -330,6 +330,14 @@ def generate_launch_arguments() -> List[LaunchDescriptionEntity]:
+             default_value="True",
+             description="If True launch the micro-ros-agent.",
+         ),
++        DeclareLaunchArgument(
++            "wipe",
++            default_value="False",
++            description="If True, wipe EEPROM and reload the defaults "
++            "file fresh. Use once after changing a .parm default "
++            "(e.g. BATT_CAPACITY), then leave False so later runs "
++            "keep any in-sim parameter changes.",
++        ),
+         # topic_tools_tf
+         DeclareLaunchArgument(
+             "use_gz_tf", default_value="true", description="Use Gazebo TF."
+diff --git a/ardupilot_gz_gazebo/worlds/runway.sdf b/ardupilot_gz_gazebo/worlds/runway.sdf
+index 2b3f6a7..2738c82 100755
+--- a/ardupilot_gz_gazebo/worlds/runway.sdf
++++ b/ardupilot_gz_gazebo/worlds/runway.sdf
+@@ -39,16 +39,37 @@
+       name="gz::sim::systems::NavSat">
+     </plugin>
+ 
++    <!-- Day/night lighting. Scene ambient can't be changed while the sim
++         runs, but lights can (/world/runway/light_config), so ambient is
++         kept low and a shadowless straight-down "fill" light stands in for
++         the rest of daytime ambient. Night mode (command center) turns the
++         sun into dim moonlight and switches the fill off. Values chosen by
++         rendering: daytime brightness and RGB person detection at 8m match
++         the old ambient-1.0 setup (0.95/0.91). -->
+     <scene>
+-      <ambient>1.0 1.0 1.0</ambient>
++      <ambient>0.15 0.15 0.15</ambient>
+       <background>0.8 0.8 0.8</background>
+       <sky></sky>
+     </scene>
+ 
++    <light type="directional" name="fill">
++      <cast_shadows>false</cast_shadows>
++      <pose>0 0 10 0 0 0</pose>
++      <diffuse>0.4 0.4 0.4 1</diffuse>
++      <specular>0 0 0 1</specular>
++      <direction>0 0 -1</direction>
++    </light>
++
++    <!-- Background temperature for the thermal camera (15 C). -->
++    <atmosphere type="adiabatic">
++      <temperature>288</temperature>
++      <temperature_gradient>-0.0065</temperature_gradient>
++    </atmosphere>
++
+     <light type="directional" name="sun">
+       <cast_shadows>true</cast_shadows>
+       <pose>0 0 10 0 0 0</pose>
+-      <diffuse>0.8 0.8 0.8 1</diffuse>
++      <diffuse>0.7 0.7 0.7 1</diffuse>
+       <specular>0.8 0.8 0.8 1</specular>
+       <attenuation>
+         <range>1000</range>
+@@ -72,5 +93,118 @@
+         <pose degrees="true">-29 545 0 0 0 363</pose>
+     </include>
+ 
++    <!-- SAR test target: a casualty lying face-up on the ground.
++
++         An <actor> playing the mesh's "stand" idle animation (arms at
++         sides, slight idle motion), rotated to lie flat. A plain static
++         <model> of the same mesh renders in its skeleton's T-pose
++         instead, which is less natural. Gazebo Fuel has no bed-free
++         lying-down person model (the two that exist have a hospital
++         bed baked into the mesh).
++
++         Verified by rendering this exact actor headlessly in Gazebo:
++         - pitch -90 is FACE-UP (pitch +90 is face-down)
++         - the mesh origin is at the hips (the source model stands it
++           at z=1.0), so z=0.15 lies it flush on the ground
++         - through the drone's camera at 8m, a COCO YOLOv8m detects it
++           at 0.88-0.96 confidence
++         Yaw 40 degrees so it isn't axis-aligned with the search lanes.
++         Position: 10m east, 15m north of the drone's spawn point -
++         mid-way through the mission.json search grid. -->
++    <actor name="test_person">
++      <skin>
++        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
++        <scale>1.0</scale>
++      </skin>
++      <animation name="stand">
++        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/stand.dae</filename>
++        <scale>1.0</scale>
++      </animation>
++      <script>
++        <loop>true</loop>
++        <auto_start>true</auto_start>
++        <trajectory id="0" type="stand">
++          <waypoint>
++            <time>0</time>
++            <pose>10 15 0.15 0 -1.5708 0.7</pose>
++          </waypoint>
++          <waypoint>
++            <time>30</time>
++            <pose>10 15 0.15 0 -1.5708 0.7</pose>
++          </waypoint>
++        </trajectory>
++      </script>
++    </actor>
++
++    <!-- Body heat for test_person, for the thermal camera. Gazebo's thermal
++         system doesn't apply to <actor>s (verified: the actor renders at
++         ambient temperature), so this is a separate 310 K (37 C) body made
++         of simple shapes, fitted by rendering to the actor's lying pose
++         (head, torso, arms at sides, legs). Transparent and shadowless, so
++         the RGB camera doesn't see it at all - only the thermal camera
++         does. Must keep the same x/y/yaw as test_person above. -->
++    <model name="test_person_heat"><static>true</static><pose>10 15 0.15 0 0 0.7</pose>
++      <link name="body">
++        <visual name="head"><pose>-0.55 0 0 0 0 0</pose><geometry><sphere><radius>0.11</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="neck"><pose>-0.42 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.05</radius><length>0.08</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="torso"><pose>-0.15 0 0 0 0 0</pose><geometry><box><size>0.46 0.34 0.2</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="pelvis"><pose>0.12 0 0 0 0 0</pose><geometry><box><size>0.2 0.3 0.18</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="leg_l"><pose>0.6 0.13 0 0 1.5708 0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="leg_r"><pose>0.6 -0.13 0 0 1.5708 -0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="arm_l"><pose>-0.02 0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++        <visual name="arm_r"><pose>-0.02 -0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
++      </link>
++    </model>
++
++    <!-- SAR payload package. Rigidly attached to the s500_quad's
++         base_link at startup by the DetachableJoint plugin in
++         s500_quad/model.sdf (detach_topic
++         /model/s500_quad/payload/detach). Pose matches the drone's
++         default spawn (x=0 y=0 z=0.2, world:=runway) only.
++         Verified by rendering at that spawn pose:
++         - the fuselage underside is at about z=0.16, so centering this
++           6cm box at z=0.12 leaves ~1cm of clearance - slung under the
++           body without touching its collision geometry;
++         - y=-0.05 puts it 5cm toward the tail (spawn yaw is 90 deg, so
++           the nose points +y). Centered under the body, it showed up
++           in the downward camera (mounted 10cm forward) whenever the
++           drone pitched nose-down 20+ degrees to fly; this position
++           stays out of frame up to 30 degrees of tilt. -->
++    <model name="payload_box">
++      <pose>0 -0.05 0.12 0 0 0</pose>
++      <link name="body">
++        <inertial>
++          <mass>0.3</mass>
++          <inertia>
++            <ixx>0.0003</ixx>
++            <ixy>0</ixy>
++            <ixz>0</ixz>
++            <iyy>0.0003</iyy>
++            <iyz>0</iyz>
++            <izz>0.0003</izz>
++          </inertia>
++        </inertial>
++        <visual name="visual">
++          <geometry>
++            <box>
++              <size>0.08 0.08 0.06</size>
++            </box>
++          </geometry>
++          <material>
++            <ambient>0.9 0.55 0.05 1</ambient>
++            <diffuse>0.9 0.55 0.05 1</diffuse>
++            <specular>0.3 0.3 0.3 1</specular>
++          </material>
++        </visual>
++        <collision name="collision">
++          <geometry>
++            <box>
++              <size>0.08 0.08 0.06</size>
++            </box>
++          </geometry>
++        </collision>
++      </link>
++    </model>
++
+   </world>
+ </sdf>

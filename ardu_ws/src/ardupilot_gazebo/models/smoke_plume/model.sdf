@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Rising smoke column from burning wreckage. Needs the world's
+       gz-sim-particle-emitter-system plugin. Emitters shoot along their
+       +x axis, so the link is pitched -90 deg to point it straight up;
+       place the model with its origin at the base of the fire. -->
+  <model name="smoke_plume">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0 0 -1.5708 0</pose>
+      <particle_emitter name="emitter" type="box">
+        <emitting>true</emitting>
+        <size>0.5 3 3</size>
+        <particle_size>2.5 2.5 2.5</particle_size>
+        <lifetime>12</lifetime>
+        <min_velocity>1.2</min_velocity>
+        <max_velocity>2.2</max_velocity>
+        <scale_rate>1.2</scale_rate>
+        <rate>10</rate>
+        <material>
+          <diffuse>0.35 0.33 0.32</diffuse>
+          <specular>0 0 0</specular>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/smoke.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </particle_emitter>
+    </link>
+  </model>
+</sdf>

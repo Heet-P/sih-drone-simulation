@@ -1,0 +1,786 @@
+<?xml version='1.0'?>
+<sdf version='1.9'>
+  <model name='s500_quad'>
+    <pose>0 0 0 0 0 0</pose>
+    <link name='base_link'>
+      <velocity_decay>
+        <linear>0.0</linear>
+        <angular>0.0</angular>
+      </velocity_decay>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <!-- Mass 1.15 kg here + 0.15 kg IMU link + 4x0.025 kg rotors
+             = 1.4 kg total, matching your real measured drone mass. -->
+        <mass>1.15</mass>
+        <!-- PLACEHOLDER: scaled from stock Iris inertia by the same
+             ratio as the mass change (1.15/1.5). Not a real measured
+             inertia. Replace once you have one (e.g. bifilar pendulum
+             test or a real CAD model). -->
+        <inertia>
+          <ixx>0.00613</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0115</iyy>
+          <iyz>0</iyz>
+          <izz>0.01303</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://iris_with_standoffs/meshes/iris_collision.stl</uri>
+          </mesh>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>100.0</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <collision name='front_left_leg_collision'>
+        <pose>0.123 0.22 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>100.0</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <collision name='front_right_leg_collision'>
+        <pose>0.123 -0.22 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>100.0</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <collision name='rear_left_leg_collision'>
+        <pose>-0.140 0.21 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>100.0</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <collision name='rear_right_leg_collision'>
+        <pose>-0.140 -0.21 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>100.0</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>100000.0</mu>
+              <mu2>100000.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+
+      <visual name='base_visual'>
+        <!-- No real S500 mesh available; reusing Iris visual as a
+             stand-in. Frame diagonal (~494mm) and this mesh's scale
+             already closely match your real 500mm S500. -->
+        <geometry>
+          <mesh>
+            <uri>model://iris_with_standoffs/meshes/iris.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.15</ambient>
+          <diffuse>0.1 0.1 0.15</diffuse>
+          <specular>1 1 1 1</specular>
+          <pbr>
+            <metal>
+              <metalness>0.5</metalness>
+              <roughness>0.5</roughness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+      <visual name='front_left_leg_visual'>
+        <pose>0.123 0.22 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05</ambient>
+          <diffuse>0.05 0.05 0.05</diffuse>
+        </material>
+      </visual>
+      <visual name='front_right_leg_visual'>
+        <pose>0.123 -0.22 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05</ambient>
+          <diffuse>0.05 0.05 0.05</diffuse>
+        </material>
+      </visual>
+      <visual name='rear_left_leg_visual'>
+        <pose>-0.140 0.21 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05</ambient>
+          <diffuse>0.05 0.05 0.05</diffuse>
+        </material>
+      </visual>
+      <visual name='rear_right_leg_visual'>
+        <pose>-0.140 -0.21 -0.11 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.005</radius>
+            <length>0.17</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05</ambient>
+          <diffuse>0.05 0.05 0.05</diffuse>
+        </material>
+      </visual>
+
+      <sensor name="air_pressure_sensor" type="air_pressure">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+      </sensor>
+      <sensor name="air_speed_sensor" type="air_speed">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+      </sensor>
+      <sensor name="altimeter_sensor" type="altimeter">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+      </sensor>
+      <sensor name="magnetometer_sensor" type="magnetometer">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+      </sensor>
+      <sensor name="navsat_sensor" type="navsat">
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+      </sensor>
+    </link>
+
+    <link name='imu_link'>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.15</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00002</iyy>
+          <iyz>0</iyz>
+          <izz>0.00002</izz>
+        </inertia>
+      </inertial>
+      <sensor name="imu_sensor" type="imu">
+        <gz_frame_id>imu_link</gz_frame_id>
+        <pose degrees="true">0 0 0 180 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>1000.0</update_rate>
+      </sensor>
+    </link>
+    <joint name='imu_joint' type='revolute'>
+      <child>imu_link</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <damping>1.0</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name='rotor_0'>
+      <pose>0.13 -0.22 0.023 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000166704</iyy>
+          <iyz>0</iyz>
+          <izz>0.000167604</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.005</length>
+            <radius>0.1</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://iris_with_standoffs/meshes/iris_prop_ccw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1</ambient>
+          <diffuse>0 0 1</diffuse>
+          <specular>1 1 1 1</specular>
+        </material>
+      </visual>
+    </link>
+    <joint name='rotor_0_joint' type='revolute'>
+      <child>rotor_0</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.004</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name='rotor_1'>
+      <pose>-0.13 0.2 0.023 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000166704</iyy>
+          <iyz>0</iyz>
+          <izz>0.000167604</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.005</length>
+            <radius>0.1</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://iris_with_standoffs/meshes/iris_prop_ccw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <specular>1 1 1 1</specular>
+        </material>
+      </visual>
+    </link>
+    <joint name='rotor_1_joint' type='revolute'>
+      <child>rotor_1</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.004</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name='rotor_2'>
+      <pose>0.13 0.22 0.023 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000166704</iyy>
+          <iyz>0</iyz>
+          <izz>0.000167604</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.005</length>
+            <radius>0.1</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://iris_with_standoffs/meshes/iris_prop_cw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 1 0</ambient>
+          <diffuse>0 1 0</diffuse>
+          <specular>1 1 1 1</specular>
+        </material>
+      </visual>
+    </link>
+    <joint name='rotor_2_joint' type='revolute'>
+      <child>rotor_2</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.004</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name='rotor_3'>
+      <pose>-0.13 -0.2 0.023 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000166704</iyy>
+          <iyz>0</iyz>
+          <izz>0.000167604</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.005</length>
+            <radius>0.1</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://iris_with_standoffs/meshes/iris_prop_cw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 1 0</ambient>
+          <diffuse>0 1 0</diffuse>
+          <specular>1 1 1 1</specular>
+        </material>
+      </visual>
+    </link>
+    <joint name='rotor_3_joint' type='revolute'>
+      <child>rotor_3</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.004</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+
+    <link name="pitch_link">
+      <!-- Fixed forward/down-facing camera mount. No gimbal in your
+           real hardware inventory (project doc Section 17), so this
+           is rigidly attached, unlike the source gimbal_small_3d
+           model's 3-joint gimbal chain. Mount pose is a reasonable
+           placeholder, not a measured value, adjust once real camera
+           placement is decided. -->
+      <pose>0.1 0 -0.05 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="camera_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.02</radius>
+            <length>0.04</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1</ambient>
+          <diffuse>0.1 0.1 0.1</diffuse>
+        </material>
+      </visual>
+      <!-- Pose pitches the sensor +90 degrees so it looks straight
+           down (nadir). Verified by rendering in Gazebo: image-up is
+           the vehicle's nose, image-right is the vehicle's right.
+           mavlink_bridge.py's camera_ray_to_ground() depends on this
+           mapping and on horizontal_fov/width/height matching its
+           CAMERA_* constants - change them together.
+
+           horizontal_fov was 2.0 rad (114 deg). Through that lens a
+           person lying on the ground at 8-10m is a ~40px speck and
+           the detector scored it ~0.0. 1.2 rad (69 deg, typical of a
+           real survey/SAR payload camera) makes the same person ~2x
+           larger; measured detection went to 0.88-0.96 at 8m. -->
+      <sensor name="camera" type="camera">
+        <gz_frame_id>pitch_link</gz_frame_id>
+        <pose>0 0 0 0 1.5708 0</pose>
+        <camera>
+          <horizontal_fov>1.2</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>15000</far>
+          </clip>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <visualize>1</visualize>
+      </sensor>
+      <!-- Thermal camera, boresighted with the RGB camera above: same
+           pose, FOV and resolution, so detections from either map to the
+           ground with the same math. L16 = radiometric, 0.01 K per unit
+           (the 8-bit L8 format only gives temperature/resolution, i.e. a
+           handful of grey levels between ground and body); the detector
+           maps a temperature window to 8-bit grey itself, like a real
+           thermal camera's AGC. -->
+      <sensor name="thermal_camera" type="thermal">
+        <gz_frame_id>pitch_link</gz_frame_id>
+        <pose>0 0 0 0 1.5708 0</pose>
+        <camera>
+          <horizontal_fov>1.2</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>L16</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>500</far>
+          </clip>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <plugin filename="gz-sim-thermal-sensor-system"
+          name="gz::sim::systems::ThermalSensor">
+          <min_temp>250</min_temp>
+          <max_temp>350</max_temp>
+          <resolution>0.01</resolution>
+        </plugin>
+      </sensor>
+    </link>
+    <joint name="pitch_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>pitch_link</child>
+    </joint>
+
+    <!-- plugins -->
+    <plugin filename="gz-sim-joint-state-publisher-system"
+      name="gz::sim::systems::JointStatePublisher">
+    </plugin>
+
+    <!-- SAR payload: rigidly joins the payload_box model (defined in
+         runway.sdf, tucked under the fuselage at spawn) to base_link.
+         Publishing an empty message to detach_topic releases it under
+         real physics. Same pattern as gz-sim's own breadcrumb example
+         at /usr/share/gz/gz-sim8/worlds/detachable_joint.sdf. -->
+    <plugin filename="gz-sim-detachable-joint-system"
+      name="gz::sim::systems::DetachableJoint">
+      <parent_link>base_link</parent_link>
+      <child_model>payload_box</child_model>
+      <child_link>body</child_link>
+      <detach_topic>/model/s500_quad/payload/detach</detach_topic>
+      <output_topic>/model/s500_quad/payload/state</output_topic>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-odometry-publisher-system"
+      name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <dimensions>3</dimensions>
+    </plugin>
+
+    <!-- PLACEHOLDER: all 8 LiftDrag blocks below (2 per rotor) are
+         unmodified stock-Iris aerodynamic coefficients. They are what
+         actually convert rotor spin into thrust. Replace once you
+         have real thrust-vs-RPM data for your A2212 + 8-inch prop
+         combo (project doc Section 9: motor thrust/current testing). -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>0.084 0 0</cp><forward>0 1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_0</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>-0.084 0 0</cp><forward>0 -1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_0</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>0.084 0 0</cp><forward>0 1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_1</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>-0.084 0 0</cp><forward>0 -1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_1</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>0.084 0 0</cp><forward>0 -1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_2</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>-0.084 0 0</cp><forward>0 1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_2</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>0.084 0 0</cp><forward>0 -1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_3</link_name>
+    </plugin>
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.3</a0><alpha_stall>1.4</alpha_stall><cla>4.2500</cla><cda>0.10</cda>
+      <cma>0.0</cma><cla_stall>-0.025</cla_stall><cda_stall>0.0</cda_stall>
+      <cma_stall>0.0</cma_stall><area>0.002</area><air_density>1.2041</air_density>
+      <cp>-0.084 0 0</cp><forward>0 1 0</forward><upward>0 0 1</upward>
+      <link_name>rotor_3</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system" name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_0_joint</joint_name>
+    </plugin>
+    <plugin filename="gz-sim-apply-joint-force-system" name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_1_joint</joint_name>
+    </plugin>
+    <plugin filename="gz-sim-apply-joint-force-system" name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_2_joint</joint_name>
+    </plugin>
+    <plugin filename="gz-sim-apply-joint-force-system" name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_3_joint</joint_name>
+    </plugin>
+
+    <!-- Real spec: 3S 11.1V nominal, 6200mAh, matches project doc Section 5. -->
+    <plugin filename="gz-sim-linearbatteryplugin-system"
+      name="gz::sim::systems::LinearBatteryPlugin">
+      <battery_name>lipo_6200mAh</battery_name>
+      <fix_issue_225>true</fix_issue_225>
+      <open_circuit_voltage_constant_coef>12.6</open_circuit_voltage_constant_coef>
+      <open_circuit_voltage_linear_coef>-2.7</open_circuit_voltage_linear_coef>
+      <capacity>6.2</capacity>
+      <voltage>12.6</voltage>
+      <initial_charge>6.2</initial_charge>
+      <power_load>200.0</power_load>
+      <start_draining>false</start_draining>
+    </plugin>
+
+    <plugin name="ArduPilotPlugin" filename="ArduPilotPlugin">
+      <fdm_addr>127.0.0.1</fdm_addr>
+      <fdm_port_in>9002</fdm_port_in>
+      <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+      <lock_step>1</lock_step>
+      <no_time_sync>1</no_time_sync>
+      <modelXYZToAirplaneXForwardZDown degrees="true">0 0 0 180 0 0</modelXYZToAirplaneXForwardZDown>
+      <gazeboXYZToNED degrees="true">0 0 0 180 0 90</gazeboXYZToNED>
+      <imuName>imu_link::imu_sensor</imuName>
+
+      <!-- PLACEHOLDER: multiplier 838 is stock-Iris max-rotor-speed.
+           Replace with your real value once thrust-tested. -->
+      <control channel="0">
+        <jointName>rotor_0_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>838</multiplier>
+        <offset>0</offset>
+        <servo_min>1100</servo_min>
+        <servo_max>1900</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.20</p_gain>
+        <i_gain>0</i_gain>
+        <d_gain>0</d_gain>
+        <i_max>0</i_max>
+        <i_min>0</i_min>
+        <cmd_max>2.5</cmd_max>
+        <cmd_min>-2.5</cmd_min>
+        <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
+      </control>
+      <control channel="1">
+        <jointName>rotor_1_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>838</multiplier>
+        <offset>0</offset>
+        <servo_min>1100</servo_min>
+        <servo_max>1900</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.20</p_gain>
+        <i_gain>0</i_gain>
+        <d_gain>0</d_gain>
+        <i_max>0</i_max>
+        <i_min>0</i_min>
+        <cmd_max>2.5</cmd_max>
+        <cmd_min>-2.5</cmd_min>
+        <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
+      </control>
+      <control channel="2">
+        <jointName>rotor_2_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>-838</multiplier>
+        <offset>0</offset>
+        <servo_min>1100</servo_min>
+        <servo_max>1900</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.20</p_gain>
+        <i_gain>0</i_gain>
+        <d_gain>0</d_gain>
+        <i_max>0</i_max>
+        <i_min>0</i_min>
+        <cmd_max>2.5</cmd_max>
+        <cmd_min>-2.5</cmd_min>
+        <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
+      </control>
+      <control channel="3">
+        <jointName>rotor_3_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>-838</multiplier>
+        <offset>0</offset>
+        <servo_min>1100</servo_min>
+        <servo_max>1900</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.20</p_gain>
+        <i_gain>0</i_gain>
+        <d_gain>0</d_gain>
+        <i_max>0</i_max>
+        <i_min>0</i_min>
+        <cmd_max>2.5</cmd_max>
+        <cmd_min>-2.5</cmd_min>
+        <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
+      </control>
+    </plugin>
+  </model>
+</sdf>

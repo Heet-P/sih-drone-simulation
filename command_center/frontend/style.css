@@ -1,0 +1,247 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #121822;
+  --panel-border: #1f2937;
+  --text: #e5e9f0;
+  --text-dim: #8b96a5;
+  --accent: #3b82f6;
+  --accent-dim: #1d4ed8;
+  --good: #22c55e;
+  --warn: #f59e0b;
+  --bad: #ef4444;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, #0f1520, #0b0f14);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.brand-mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.brand h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.pill {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pill-offline { background: #2a1414; color: var(--bad); }
+.pill-online { background: #10261a; color: var(--good); }
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  grid-template-rows: auto auto;
+  gap: 16px;
+  padding: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.panel h2 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.controls { grid-column: 1; grid-row: 1 / span 2; }
+.video { grid-column: 2; grid-row: 1; }
+.telemetry { grid-column: 3; grid-row: 1; }
+.console { grid-column: 2 / span 2; grid-row: 2; }
+
+.button-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.world-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.world-picker select {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  background: #17202c;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.world-picker select:disabled { opacity: 0.6; }
+
+button.action {
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  background: #17202c;
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s, opacity 0.15s;
+  text-align: left;
+}
+
+button.action:hover:not(:disabled) { background: var(--accent-dim); }
+button.action:active:not(:disabled) { transform: scale(0.98); }
+
+button.action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+button.action.secondary { background: #1a1f27; }
+button.action.danger { background: #2a1414; color: #fca5a5; border-color: #4c1d1d; }
+button.action.danger:hover:not(:disabled) { background: #4c1d1d; }
+
+.video img {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.telemetry-grid dt { color: var(--text-dim); }
+.telemetry-grid dd {
+  margin: 0;
+  font-family: var(--mono);
+  text-align: right;
+}
+
+.process-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #1a1f27;
+  color: var(--text-dim);
+  border: 1px solid var(--panel-border);
+}
+
+.dot.active {
+  color: var(--good);
+  border-color: #14532d;
+  background: #0f2416;
+}
+
+.console pre {
+  margin: 0;
+  height: 220px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #a3b3c2;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .controls, .video, .telemetry, .console {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* Night mode (thermal sensor active): dark red palette, easier on
+   night-adapted eyes. Toggled by app.js from the backend's sensor_mode. */
+body { transition: background 0.4s, color 0.4s; }
+
+body.night {
+  --bg: #0a0506;
+  --panel: #120809;
+  --panel-border: #3b1417;
+  --text: #f3d0d0;
+  --text-dim: #a86b6f;
+  --accent: #e5484d;
+  --accent-dim: #9b1c22;
+}
+
+body.night .topbar { background: linear-gradient(180deg, #160709, #0a0506); }
+body.night button.action { background: #1a0c0e; }
+body.night button.action.secondary { background: #140a0b; }
+body.night .world-picker select { background: #1a0c0e; }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.mode-badge {
+  display: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: #3b1417;
+  color: #ff8a8a;
+}
+body.night .mode-badge { display: inline-block; }
+
+button.action.mode { border-color: #4b3a12; }
+body.night button.action.mode { border-color: #6b1a1f; color: #ffb4b4; }

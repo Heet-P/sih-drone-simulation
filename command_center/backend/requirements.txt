@@ -1,0 +1,4 @@
+# rclpy, cv_bridge, opencv-python and numpy are already provided by the
+# ROS2/ardu_ws environment (sourced via ros_env.sh) - only Flask needs
+# a separate install: pip3 install --user -r requirements.txt
+flask>=3.0

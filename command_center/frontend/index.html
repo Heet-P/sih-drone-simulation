@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIH-Drone Command Center</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <h1>SIH-Drone Command Center</h1>
+    </div>
+    <div class="header-right">
+      <span id="mode-badge" class="mode-badge">NIGHT &middot; THERMAL</span>
+      <div id="connection" class="pill pill-offline">Connecting&hellip;</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls">
+      <h2>Controls</h2>
+      <label class="world-picker" for="world-select">World
+        <select id="world-select" title="Gazebo world to launch">
+          <option value="disaster" selected>Post-disaster zone</option>
+          <option value="runway">Runway (flat)</option>
+        </select>
+      </label>
+      <div class="button-grid">
+        <button id="btn-launch" class="action">Launch Simulation</button>
+        <button id="btn-stop-sim" class="action secondary">Stop Simulation</button>
+        <button id="btn-feed" class="action">Start Live Feed</button>
+        <button id="btn-stop-feed" class="action secondary">Stop Live Feed</button>
+        <button id="btn-mode" class="action mode" title="Switch between the RGB camera by day and the thermal camera at night (also switches the simulation to night)">Switch to Thermal / Night</button>
+        <button id="btn-mission" class="action" title="Grid-search the area, stop to verify any candidate, land beside a confirmed person">Start Search &amp; Rescue</button>
+        <button id="btn-land" class="action">Land Now</button>
+        <button id="btn-drop" class="action">Drop Payload</button>
+        <button id="btn-estop" class="action danger">Emergency Stop</button>
+      </div>
+    </section>
+
+    <section class="panel video">
+      <h2>Live Feed</h2>
+      <img id="video" src="/video_feed" alt="Live drone camera feed">
+    </section>
+
+    <section class="panel telemetry">
+      <h2>Telemetry</h2>
+      <dl class="telemetry-grid">
+        <dt>Armed</dt><dd id="t-armed">&mdash;</dd>
+        <dt>Mode</dt><dd id="t-mode">&mdash;</dd>
+        <dt>Sensor</dt><dd id="t-sensor">&mdash;</dd>
+        <dt>Mission Stage</dt><dd id="t-stage">&mdash;</dd>
+        <dt>Search Progress</dt><dd id="t-search">&mdash;</dd>
+        <dt>Battery</dt><dd id="t-battery">&mdash;</dd>
+        <dt>Altitude</dt><dd id="t-altitude">&mdash;</dd>
+        <dt>Position</dt><dd id="t-position">&mdash;</dd>
+        <dt>Persons Detected</dt><dd id="t-persons">&mdash;</dd>
+        <dt>Person Confirmed</dt><dd id="t-confirmed">&mdash;</dd>
+        <dt>Payload</dt><dd id="t-payload">&mdash;</dd>
+      </dl>
+      <div class="process-row">
+        <span id="p-sim" class="dot">Sim</span>
+        <span id="p-bridge" class="dot">Bridge</span>
+        <span id="p-feed" class="dot">Feed</span>
+      </div>
+    </section>
+
+    <section class="panel console">
+      <h2>Console</h2>
+      <pre id="log"></pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

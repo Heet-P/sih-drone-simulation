@@ -1,0 +1,27 @@
+# colcon build outputs (regenerate with colcon build)
+build/
+install/
+log/
+logs/
+
+# Upstream repos, fetched from ardu_ws/deps.repos
+/ardu_ws/src/ardupilot/
+/ardu_ws/src/ros_gz/
+/ardu_ws/src/ardupilot_sitl_models/
+/ardu_ws/src/micro_ros_agent/
+/ardu_ws/src/Micro-XRCE-DDS-Gen/
+/ardu_ws/src/sdformat_urdf/
+
+# SITL / MAVProxy runtime files
+eeprom.bin
+mav.parm
+*.tlog
+*.tlog.raw
+terrain/
+
+# Unused model weights (yolov8m.pt and thermal_best.pt are used and committed)
+/ardu_ws/yolov8n.pt
+
+# Python
+__pycache__/
+*.pyc

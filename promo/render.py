@@ -111,11 +111,11 @@ def main():
     enc = ["-c:v", "libx264", "-preset", "slow", "-crf", "14", "-pix_fmt", "yuv420p",
            "-profile:v", "high", "-movflags", "+faststart", "-color_primaries", "bt709",
            "-color_trc", "bt709", "-colorspace", "bt709"]
-    silent = OUT / "drone-command-promo-silent.mp4"
+    silent = OUT / "sahara-promo-silent.mp4"
     subprocess.run([ff, "-y", "-loglevel", "error", *common, *enc, str(silent)], check=True)
     print(silent)
     if os.path.exists(args.audio):
-        final = OUT / "drone-command-promo.mp4"
+        final = OUT / "sahara-promo.mp4"
         subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(silent), "-i", args.audio,
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest",
                         "-movflags", "+faststart", str(final)], check=True)

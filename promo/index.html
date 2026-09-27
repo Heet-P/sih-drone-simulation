@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Drone Command Promo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+:root {
+  --paper: #F4F3EF; --surface: #FFFFFF; --ink: #0E1422; --ink2: #2A3345;
+  --dim: #667085; --faint: #98A2B3; --line: #E5E3DD; --line2: #D8D5CD;
+  --orange: #F97316; --orange-d: #EA580C; --orange-soft: #FFF1E6;
+  --blue: #2563EB; --sky: #0284C7; --green: #16A34A; --green-soft: #E8F7EE;
+  --red: #DC2626; --red-soft: #FDECEC; --amber: #D97706; --amber-soft: #FEF3E2;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow: 0 1px 2px rgba(14,20,34,.06), 0 12px 32px -8px rgba(14,20,34,.14), 0 40px 80px -24px rgba(14,20,34,.18);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); }
+#stage {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--paper); color: var(--ink);
+  font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; display: none; }
+.bg-dots { position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(14,20,34,.075) 1.3px, transparent 1.5px);
+  background-size: 36px 36px; background-position: 18px 18px; }
+.bg-rings { position: absolute; inset: 0;
+  background-image:
+    radial-gradient(900px 600px at 92% -8%, rgba(249,115,22,.07), transparent 70%),
+    radial-gradient(900px 600px at 0% 110%, rgba(37,99,235,.05), transparent 70%); }
+.mask { overflow: hidden; padding: 0 .06em .08em; margin: 0 -.06em; }
+.rise { display: block; will-change: transform; }
+.mono { font-family: var(--mono); }
+.card { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); border: 1px solid rgba(14,20,34,.06); }
+
+/* Chapter text column */
+.over { font-family: var(--mono); font-size: 18px; font-weight: 600; letter-spacing: .16em; color: var(--orange-d); text-transform: uppercase; display: flex; gap: 14px; align-items: center; }
+.over i { display: inline-block; width: 36px; height: 2px; background: var(--orange); }
+.h2 { font-size: 78px; line-height: 1.0; font-weight: 800; letter-spacing: -.045em; margin: 0; }
+.h2 em { font-style: normal; color: var(--orange); }
+.body { font-size: 25px; line-height: 1.4; color: var(--dim); font-weight: 500; letter-spacing: -.01em; }
+.body b { color: var(--ink); font-weight: 650; }
+
+/* HUD frame */
+#hud { position: absolute; inset: 0; pointer-events: none; }
+.hud-top { position: absolute; left: 80px; right: 80px; top: 48px; height: 40px; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 14px; font-weight: 600; font-size: 15px; letter-spacing: .32em; }
+.brand svg { width: 28px; height: 28px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
+.chapters { display: flex; gap: 10px; align-items: center; }
+.chap { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--faint); letter-spacing: .08em; }
+.chap .bar { width: 64px; height: 4px; border-radius: 4px; background: var(--line2); overflow: hidden; }
+.chap .bar b { display: block; height: 100%; width: 0; background: var(--orange); border-radius: 4px; }
+.chap.on { color: var(--ink); }
+.hud-clock { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--dim); display: flex; align-items: center; gap: 10px; letter-spacing: .06em; }
+.hud-clock .rec { width: 9px; height: 9px; border-radius: 50%; background: var(--red); }
+
+/* Chips */
+.pill { display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 20px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 18px -8px rgba(14,20,34,.18); font-size: 19px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.pill .d { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+.pill .k { font-family: var(--mono); font-size: 16px; color: var(--orange-d); font-weight: 700; }
+
+/* Transition slabs */
+.slab { position: absolute; top: -40px; height: 1160px; transform-origin: 50% 50%; will-change: transform; }
+
+/* Icons */
+.ic { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* S1 */
+.big-kin { position: absolute; left: 0; right: 0; text-align: center; font-weight: 850; font-size: 168px; letter-spacing: -.055em; line-height: 1; }
+
+/* Map overlay panels */
+.stat-panel { position: absolute; padding: 20px 24px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: var(--shadow); border: 1px solid rgba(14,20,34,.06); }
+.stat-panel .lbl { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--dim); text-transform: uppercase; }
+.stat-panel .val { font-size: 64px; font-weight: 800; letter-spacing: -.05em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.pbar { height: 8px; border-radius: 8px; background: #EEECE6; overflow: hidden; margin-top: 10px; }
+.pbar b { display: block; height: 100%; width: 0; border-radius: 8px; background: linear-gradient(90deg, var(--orange), #FB923C); }
+.legend { position: absolute; display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: var(--ink2); }
+.legend span { display: flex; align-items: center; gap: 8px; }
+.legend i { display: inline-block; }
+
+/* Feed */
+.feedwrap { position: absolute; border-radius: 22px; overflow: hidden; box-shadow: var(--shadow); background: #111; }
+.seg { position: absolute; display: flex; padding: 5px; border-radius: 14px; background: rgba(255,255,255,.92); box-shadow: 0 6px 20px -8px rgba(0,0,0,.3); }
+.seg span { padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; letter-spacing: .08em; color: var(--dim); }
+.seg span.on { background: var(--ink); color: #fff; }
+.hudchip { position: absolute; display: flex; gap: 22px; padding: 12px 20px; border-radius: 12px; background: rgba(255,255,255,.92); font-family: var(--mono); font-size: 15px; color: var(--dim); box-shadow: 0 6px 20px -8px rgba(0,0,0,.3); font-weight: 600; }
+.hudchip b { color: var(--ink); }
+.box { position: absolute; border-radius: 6px; }
+.box .tag { position: absolute; left: -2px; top: -38px; height: 32px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: 8px; font-family: var(--mono); font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
+.split-lbl { position: absolute; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .14em; padding: 7px 12px; border-radius: 8px; background: rgba(255,255,255,.92); color: var(--ink); }
+.knob { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: #fff; box-shadow: 0 6px 20px rgba(0,0,0,.35); display: grid; place-items: center; }
+.fusion { position: absolute; padding: 26px 28px; }
+.fusion table { border-collapse: collapse; width: 100%; }
+.fusion th { font-family: var(--mono); font-size: 12.5px; font-weight: 700; letter-spacing: .1em; color: var(--dim); text-align: left; padding: 0 8px 14px; text-transform: uppercase; }
+.fusion td { padding: 12px 8px; border-top: 1px solid var(--line); font-size: 18px; font-weight: 600; vertical-align: middle; }
+.cell { display: flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--ink2); }
+.mark { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.mark.ok { background: var(--green); } .mark.no { background: var(--red); }
+.mark svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.toggle { position: absolute; display: flex; align-items: center; gap: 14px; padding: 8px 18px 8px 8px; border-radius: 999px; background: rgba(255,255,255,.95); box-shadow: 0 6px 20px -8px rgba(0,0,0,.35); font-weight: 700; font-size: 16px; letter-spacing: .06em; }
+.toggle .track { width: 64px; height: 34px; border-radius: 99px; background: #FDE7C8; position: relative; }
+.toggle .thumb { position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; border-radius: 50%; background: var(--orange); display: grid; place-items: center; }
+.toggle .thumb svg { width: 18px; height: 18px; stroke: #fff; }
+
+/* Triage cards */
+.vcard { position: absolute; left: 0; right: 0; padding: 20px 24px 20px 28px; border-radius: 18px; background: #fff; box-shadow: var(--shadow); border: 1px solid rgba(14,20,34,.06); overflow: hidden; }
+.vcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--amber); }
+.vcard.p1::before { background: var(--red); }
+.vcard .top { display: flex; align-items: center; gap: 14px; }
+.prio { font-weight: 800; font-size: 18px; color: #fff; background: var(--amber); border-radius: 99px; padding: 4px 14px; letter-spacing: .02em; }
+.p1 .prio { background: var(--red); }
+.vcard .id { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.vcard .risk { margin-left: auto; font-size: 16px; font-weight: 600; color: var(--amber); display: flex; gap: 8px; align-items: center; }
+.p1 .risk { color: var(--red); }
+.vcard .act { margin-top: 10px; font-size: 17px; color: var(--ink2); font-weight: 500; display: flex; gap: 10px; align-items: flex-start; }
+.vcard .act svg { color: var(--green); flex: none; margin-top: 2px; }
+.toast { position: absolute; display: flex; align-items: center; gap: 14px; padding: 14px 20px 14px 16px; border-radius: 14px; background: #fff; box-shadow: var(--shadow); border-left: 5px solid var(--green); font-weight: 650; font-size: 18px; }
+
+/* SITREP */
+.doc { position: absolute; width: 820px; height: 1040px; background: #fff; border-radius: 12px; box-shadow: 0 2px 4px rgba(14,20,34,.05), 0 30px 80px -20px rgba(14,20,34,.3); padding: 44px 48px; transform-origin: 50% 100%; }
+.doc header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid var(--ink); padding-bottom: 14px; }
+.doc h3 { margin: 0; font-size: 28px; letter-spacing: -.01em; font-weight: 800; }
+.doc .sub { color: var(--dim); font-size: 15px; margin-top: 4px; }
+.doc .stamp { text-align: right; font-family: var(--mono); font-size: 13px; color: var(--dim); line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; }
+.kpi { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.kpi b { display: block; font-size: 30px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--dim); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.doc h4 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; margin: 22px 0 10px; }
+.doc table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.doc th, .doc td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+.doc th { font-size: 11.5px; text-transform: uppercase; color: var(--dim); letter-spacing: .05em; }
+.dp { font-weight: 800; color: #fff; background: var(--amber); border-radius: 99px; padding: 2px 10px; font-size: 13px; }
+.dp.p1 { background: var(--red); }
+.stampbadge { position: absolute; padding: 14px 26px; border-radius: 14px; font-family: var(--mono); font-weight: 700; font-size: 24px; letter-spacing: .12em; border: 3px solid currentColor; background: rgba(255,255,255,.9); }
+
+/* Results */
+.tile { position: absolute; top: 330px; width: 400px; height: 420px; padding: 40px 36px; border-radius: 26px; background: #fff; box-shadow: var(--shadow); border: 1px solid rgba(14,20,34,.06); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.tile .n { font-size: 150px; font-weight: 850; letter-spacing: -.06em; line-height: .9; font-variant-numeric: tabular-nums; }
+.tile .n small { font-size: 70px; letter-spacing: -.02em; margin-left: .12em; }
+.tile .t { font-size: 27px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+.tile .s { font-size: 18px; color: var(--dim); font-weight: 500; margin-top: 8px; }
+.tile .ico { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; }
+.tile.hero { background: var(--ink); color: #fff; }
+.tile.hero .s { color: #A5AEC0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="bg-dots"></div>
+  <div class="bg-rings"></div>
+
+  <!-- ============ S1 COLD OPEN ============ -->
+  <section class="scene" id="s1">
+    <svg class="abs" id="s1-ret" width="1920" height="1080" style="left:0;top:0">
+      <g stroke="#0E1422" stroke-width="2" fill="none" opacity=".9">
+        <path id="r1" d="M860 540 H920"/><path id="r2" d="M1060 540 H1000"/>
+        <path id="r3" d="M960 440 V500"/><path id="r4" d="M960 640 V580"/>
+      </g>
+      <g id="s1-corners" stroke="#F97316" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M590 340 v-40 h40"/><path d="M1330 340 v-40 h-40"/>
+        <path d="M590 740 v40 h40"/><path d="M1330 740 v40 h-40"/>
+      </g>
+    </svg>
+    <div class="abs mono" id="s1-label" style="left:0;right:0;top:250px;text-align:center;font-size:20px;font-weight:600;letter-spacing:.24em;color:#667085">SEARCH AREA &nbsp;·&nbsp; 200 × 200 M &nbsp;·&nbsp; T+00:00</div>
+    <div class="big-kin" style="top:456px"><div class="mask"><span class="rise" id="k1">6 people missing.</span></div></div>
+    <div class="big-kin" style="top:470px;font-size:132px"><div class="mask" style="display:flex;justify-content:center;gap:.26em">
+      <span class="rise" id="k2a">City.</span><span class="rise" id="k2b">Forest.</span><span class="rise" id="k2c">River.</span><span class="rise" id="k2d" style="color:#F97316">Rubble.</span></div></div>
+    <div class="big-kin" style="top:456px"><div class="mask"><span class="rise" id="k3">One <span style="color:#F97316">drone.</span></span></div></div>
+    <div class="abs" id="s1-circle" style="left:960px;top:540px;width:10px;height:10px;border-radius:50%;background:#F97316;transform:translate(-50%,-50%) scale(0)"></div>
+  </section>
+
+  <!-- ============ S2 TITLE ============ -->
+  <section class="scene" id="s2">
+    <div class="abs" id="s2-orange" style="inset:0;background:#F97316"></div>
+    <div class="abs" id="s2-inner" style="inset:0;background:#F4F3EF"><div class="bg-dots"></div><div class="bg-rings"></div>
+    <div class="abs" id="s2-group" style="left:0;top:0;width:1920px;height:1080px">
+      <div class="abs" style="left:0;right:0;top:0;bottom:60px;display:flex;align-items:center;justify-content:center;gap:56px">
+        <svg id="s2-logo" viewBox="0 0 32 32" style="width:178px;height:178px;overflow:visible;flex:none">
+          <path id="s2-lp1f" d="M3 5 16 27 29 5 16 12z" fill="#F97316" opacity="0"/>
+          <path id="s2-lp1" d="M3 5 16 27 29 5 16 12z" fill="none" stroke="#0E1422" stroke-width="1.6" stroke-linejoin="round"/>
+          <path id="s2-lp2" d="M16 12v15" fill="none" stroke="#0E1422" stroke-width="1.6"/>
+        </svg>
+        <div style="white-space:nowrap">
+          <div class="mask"><div class="rise" id="s2-word" style="font-size:96px;font-weight:600;letter-spacing:.2em;line-height:1.05;margin-right:-.2em">DRONE COMMAND</div></div>
+          <div id="s2-line" style="height:4px;width:0;background:#F97316;border-radius:4px;margin:18px 0 20px"></div>
+          <div id="s2-tag" style="display:flex;gap:24px;align-items:center;font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:.34em;color:#2A3345">
+            <span id="s2-t1">SEARCH</span><i id="s2-d1" style="width:9px;height:9px;border-radius:50%;background:#F97316"></i>
+            <span id="s2-t2">DETECT</span><i id="s2-d2" style="width:9px;height:9px;border-radius:50%;background:#F97316"></i>
+            <span id="s2-t3" style="color:#EA580C">RESCUE</span>
+          </div>
+        </div>
+      </div>
+      <div class="abs" id="s2-sub" style="left:0;right:0;top:790px;text-align:center;font-size:26px;color:#667085;font-weight:500">An autonomous search-and-rescue drone with <b style="color:#0E1422">on-device AI</b></div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ S3 BAYESIAN SEARCH ============ -->
+  <section class="scene" id="s3">
+    <div class="abs" style="left:80px;top:208px;width:780px">
+      <div class="mask"><div class="rise over" id="s3-over"><i></i>01 / Bayesian search</div></div>
+      <div style="height:26px"></div>
+      <div class="mask"><div class="rise h2" id="s3-h1">Flies where</div></div>
+      <div class="mask"><div class="rise h2" id="s3-h2">survivors are</div></div>
+      <div class="mask"><div class="rise h2" id="s3-h3"><em>most likely.</em></div></div>
+      <div style="height:34px"></div>
+      <div id="s3-bodywrap" style="position:relative;height:420px">
+        <div class="body abs" id="s3-body" style="left:0;top:0;width:640px">A land-use prior seeds a <b>live probability map</b>. Every camera look drains it, and the drone always chases the most probability per second of flight.</div>
+        <div class="abs" id="s3-stat" style="left:0;top:-10px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span id="s3-num" style="font-size:210px;font-weight:850;letter-spacing:-.065em;line-height:.9;color:#F97316">51</span><span style="font-size:110px;font-weight:800;color:#F97316;letter-spacing:-.04em">%</span></div>
+          <div style="font-size:30px;font-weight:700;letter-spacing:-.02em;margin-top:14px">faster to find survivors</div>
+          <div class="body" style="font-size:21px;margin-top:6px">Median time-to-find vs. a lawnmower grid</div>
+        </div>
+      </div>
+    </div>
+    <div class="abs card" id="s3-card" style="left:1040px;top:140px;width:800px;height:800px;padding:26px">
+      <div style="position:relative;width:748px;height:748px;border-radius:12px;overflow:hidden">
+        <img src="region.png" style="position:absolute;inset:0;width:748px;height:748px;filter:saturate(.45) brightness(1.12) contrast(.92)">
+        <canvas id="s3-canvas" width="748" height="748" style="position:absolute;inset:0"></canvas>
+      </div>
+    </div>
+    <div class="stat-panel" id="s3-pos" style="left:80px;top:846px;width:330px">
+      <div class="lbl">Probability of success</div>
+      <div class="val"><span id="s3-posv">0</span><span style="font-size:36px;color:#98A2B3">%</span></div>
+      <div class="pbar"><b id="s3-posb"></b></div>
+    </div>
+    <div class="stat-panel" id="s3-cas" style="left:430px;top:846px;width:260px">
+      <div class="lbl">Casualties found</div>
+      <div class="val"><span id="s3-casv">0</span><span style="font-size:36px;color:#98A2B3"> / 6</span></div>
+    </div>
+    <div class="legend" id="s3-legend" style="left:1066px;top:966px">
+      <span><i style="width:44px;height:10px;border-radius:5px;background:linear-gradient(90deg,#FED976,#FD8D3C,#E31A1C)"></i>Casualty probability</span>
+      <span><i style="width:26px;height:4px;border-radius:2px;background:#0284C7"></i>Flight path</span>
+      <span><i style="width:14px;height:14px;border-radius:50%;background:#DC2626"></i>Casualty</span>
+    </div>
+  </section>
+
+  <!-- ============ S4 SENSOR FUSION ============ -->
+  <section class="scene" id="s4">
+    <div class="feedwrap" id="s4-feed" style="left:80px;top:150px;width:1040px;height:780px">
+      <canvas id="s4-canvas" width="1040" height="780" style="position:absolute;inset:0"></canvas>
+      <div class="seg" id="s4-seg" style="left:22px;top:22px"><span data-k="ai">AI FEED</span><span data-k="th">THERMAL</span><span data-k="sp">SPLIT</span></div>
+      <div class="hudchip" id="s4-hud" style="right:22px;top:24px"><span>ALT <b>8.0 m</b></span><span>SPD <b>0.0</b></span><span>HDG <b>042°</b></span><b id="s4-stage" style="color:#EA580C;letter-spacing:.06em">VERIFYING</b></div>
+      <div class="split-lbl" id="s4-lL" style="left:22px;bottom:22px">AI FEED</div>
+      <div class="split-lbl" id="s4-lR" style="right:22px;bottom:22px">THERMAL</div>
+      <div class="knob" id="s4-knob"><svg viewBox="0 0 24 24" width="26" height="26" class="ic" style="stroke:#0E1422;stroke-width:2.4"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></svg></div>
+      <div class="box" id="s4-bA"><div class="tag" id="s4-tA"></div></div>
+      <div class="box" id="s4-bB"><div class="tag" id="s4-tB"></div></div>
+      <div class="box" id="s4-bC"><div class="tag" id="s4-tC"></div></div>
+      <div class="toggle" id="s4-toggle" style="left:22px;top:92px"><div class="track"><div class="thumb" id="s4-thumb"><svg viewBox="0 0 24 24" class="ic" id="s4-ticon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div></div><span id="s4-tlabel">DAY</span></div>
+    </div>
+    <div class="abs" style="left:1200px;top:208px;width:660px">
+      <div class="mask"><div class="rise over" id="s4-over"><i></i>02 / Sensor fusion</div></div>
+      <div style="height:26px"></div>
+      <div class="mask"><div class="rise h2" id="s4-h1">Sees in two</div></div>
+      <div class="mask"><div class="rise h2" id="s4-h2">spectra.</div></div>
+      <div class="mask"><div class="rise h2" id="s4-h3"><em>Says no</em> to dogs.</div></div>
+    </div>
+    <div class="abs card fusion" id="s4-fusion" style="left:1200px;top:560px;width:640px">
+      <div class="mono" style="font-size:13px;font-weight:700;letter-spacing:.14em;color:#667085;margin-bottom:16px">THERMAL CHECK ON EVERY BOX</div>
+      <table>
+        <tr><th style="width:130px"></th><th>Body temp</th><th>No fire</th><th>Skin ≥ 308 K</th></tr>
+        <tr><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#16A34A;margin-right:10px"></span>Box A</td>
+          <td><div class="cell" id="fA1"><span class="mark ok"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>311 K</div></td>
+          <td><div class="cell" id="fA2"><span class="mark ok"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>&lt;323 K</div></td>
+          <td><div class="cell" id="fA3"><span class="mark ok"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>310 K</div></td></tr>
+        <tr><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#DC2626;margin-right:10px"></span>Box B</td>
+          <td><div class="cell" id="fB1"><span class="mark ok"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>306 K</div></td>
+          <td><div class="cell" id="fB2"><span class="mark ok"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>&lt;323 K</div></td>
+          <td><div class="cell" id="fB3" style="color:#DC2626"><span class="mark no"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17"/></svg></span>fur 307 K</div></td></tr>
+      </table>
+    </div>
+    <div class="abs" id="s4-stat" style="left:1200px;top:580px;width:640px">
+      <div style="display:flex;align-items:center;gap:28px;font-weight:850;letter-spacing:-.06em;line-height:.9">
+        <span id="s4-n1" style="font-size:190px;color:#98A2B3">2</span>
+        <svg viewBox="0 0 24 24" width="80" height="80" class="ic" style="stroke:#F97316;stroke-width:2.6" id="s4-arrow"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        <span id="s4-n2" style="font-size:190px;color:#16A34A">0</span>
+      </div>
+      <div style="font-size:30px;font-weight:700;letter-spacing:-.02em;margin-top:18px">dogs flagged as casualties</div>
+      <div class="body" style="font-size:21px;margin-top:6px">before vs. after thermal fusion · 120 false boxes rejected</div>
+    </div>
+  </section>
+
+  <!-- ============ S5 OBSTACLE GUARD ============ -->
+  <section class="scene" id="s5">
+    <div class="abs" style="left:80px;top:150px;width:1100px">
+      <div class="mask"><div class="rise over" id="s5-over"><i></i>03 / Obstacle guard</div></div>
+      <div style="height:22px"></div>
+      <div style="display:flex;gap:22px">
+        <div class="mask"><div class="rise h2" id="s5-h1">Sees the wall.</div></div>
+        <div class="mask"><div class="rise h2" id="s5-h2"><em>Climbs over it.</em></div></div>
+      </div>
+    </div>
+    <div class="abs" id="s5-chips" style="right:80px;top:170px;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+      <div class="pill" id="s5-c1"><span class="k">48×16</span>lidar beams</div>
+      <div class="pill" id="s5-c2"><span class="k">40 m</span>range</div>
+    </div>
+    <div class="abs card" id="s5-card" style="left:80px;top:370px;width:1760px;height:640px;overflow:hidden">
+      <canvas id="s5-canvas" width="1760" height="640" style="position:absolute;inset:0"></canvas>
+    </div>
+  </section>
+
+  <!-- ============ S6 HAZARDS & TRIAGE ============ -->
+  <section class="scene" id="s6">
+    <div class="abs card" id="s6-card" style="left:80px;top:150px;width:900px;height:860px;padding:24px;overflow:hidden">
+      <canvas id="s6-canvas" width="852" height="812" style="position:absolute;left:24px;top:24px"></canvas>
+      <div class="toast" id="s6-toast" style="left:50%;top:40px">
+        <svg viewBox="0 0 24 24" width="26" height="26" class="ic" style="color:#16A34A;stroke-width:2.2"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+        Aid kit dropped <span class="mono" style="color:#667085;font-size:16px">2.5 m from C-2</span>
+      </div>
+    </div>
+    <div class="abs" style="left:1060px;top:170px;width:780px">
+      <div class="mask"><div class="rise over" id="s6-over"><i></i>04 / Hazards &amp; triage</div></div>
+      <div style="height:22px"></div>
+      <div class="mask"><div class="rise h2" id="s6-h1">Maps the danger.</div></div>
+      <div class="mask"><div class="rise h2" id="s6-h2"><em>Ranks who's first.</em></div></div>
+    </div>
+    <div class="abs" id="s6-cards" style="left:1060px;top:430px;width:780px;height:580px">
+      <div class="vcard p1" id="v1" style="top:0">
+        <div class="top"><span class="prio">P1</span><span class="id">C-2</span><span class="risk"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 2-2 3-4 3 0-2-1-4-2-5C8 7 5 10 5 15c0 4 3 7 7 7z"/></svg>fire 11 m · structure 4 m</span></div>
+        <div class="act"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="m5 12 5 5 9-10"/></svg>Send team on the marked safe route: 41 m, about 0.7 min on foot.</div>
+      </div>
+      <div class="vcard" id="v2" style="top:160px">
+        <div class="top"><span class="prio">P2</span><span class="id">C-1</span><span class="risk"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 20c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>flood water 6 m away</span></div>
+        <div class="act"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="m5 12 5 5 9-10"/></svg>Send team on the marked safe route: 27 m, about 0.5 min on foot.</div>
+      </div>
+      <div class="vcard" id="v3" style="top:320px">
+        <div class="top"><span class="prio">P3</span><span class="id">C-3</span><span class="risk" style="color:#16A34A"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>moving (responsive)</span></div>
+        <div class="act"><svg viewBox="0 0 24 24" width="20" height="20" class="ic"><path d="m5 12 5 5 9-10"/></svg>Send team on the marked safe route: 33 m, about 0.6 min on foot.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ S7 SITREP ============ -->
+  <section class="scene" id="s7">
+    <div class="abs" style="left:80px;top:208px;width:700px">
+      <div class="mask"><div class="rise over" id="s7-over"><i></i>05 / SITREP</div></div>
+      <div style="height:26px"></div>
+      <div class="mask"><div class="rise h2" id="s7-h1">One click.</div></div>
+      <div class="mask"><div class="rise h2" id="s7-h2"><em>One report.</em></div></div>
+      <div style="height:34px"></div>
+      <div class="body" id="s7-body" style="width:560px">Casualties with coordinates and priorities, hazards, safe routes and the mission log. Built from the drone's own map, <b>print-ready as PDF.</b></div>
+    </div>
+    <div class="doc" id="s7-doc" style="left:900px;top:130px">
+      <header><div><h3>SAR Situation Report</h3><div class="sub">Region 200 m · autonomous mission · seed 3</div></div>
+        <div class="stamp">27 SEP 2026 · 14:32<br>STAGE: COMPLETE</div></header>
+      <div class="kpis">
+        <div class="kpi"><b id="k-c">0</b><span>Casualties</span></div>
+        <div class="kpi"><b id="k-h">0</b><span>Hazards</span></div>
+        <div class="kpi"><b id="k-p">0%</b><span>POS</span></div>
+        <div class="kpi"><b id="k-t">0</b><span>Minutes</span></div>
+        <div class="kpi"><b id="k-e">0.0</b><span>Max err m</span></div>
+      </div>
+      <canvas id="s7-canvas" width="724" height="340" style="width:724px;height:340px;border:1px solid #E5E3DD;border-radius:8px;display:block"></canvas>
+      <h4>Rescue priorities</h4>
+      <table>
+        <tr><th>Prio</th><th>ID</th><th>Position</th><th>Risks</th><th>Action</th></tr>
+        <tr id="r1r"><td><span class="dp p1">P1</span></td><td class="mono">C-2</td><td class="mono">28.61412, 77.20918</td><td style="color:#B45309">fire 11 m</td><td style="color:#15803D">Safe route 41 m</td></tr>
+        <tr id="r2r"><td><span class="dp">P2</span></td><td class="mono">C-1</td><td class="mono">28.61397, 77.20881</td><td style="color:#B45309">flood 6 m</td><td style="color:#15803D">Safe route 27 m</td></tr>
+        <tr id="r3r"><td><span class="dp">P3</span></td><td class="mono">C-3</td><td class="mono">28.61389, 77.20903</td><td style="color:#16A34A">moving</td><td style="color:#15803D">Safe route 33 m</td></tr>
+      </table>
+      <h4>Mission log</h4>
+      <div class="mono" id="s7-log" style="font-size:12.5px;line-height:1.9;color:#475467">
+        <div><span style="color:#98A2B3">T+06:41</span> &nbsp;<b style="color:#DC2626">CRITICAL</b> &nbsp;Casualty C-2 confirmed · 0.4 m · fire 11 m away</div>
+        <div><span style="color:#98A2B3">T+06:55</span> &nbsp;<b style="color:#15803D">INFO</b> &nbsp;&nbsp;&nbsp;&nbsp;Aid kit dropped 2.5 m from C-2</div>
+        <div><span style="color:#98A2B3">T+09:12</span> &nbsp;<b style="color:#B45309">WARNING</b> &nbsp;Obstacle ahead · climbing to 22.0 m</div>
+      </div>
+    </div>
+    <div class="stampbadge" id="s7-b1" style="left:1640px;top:300px;color:#16A34A">OFFLINE</div>
+    <div class="stampbadge" id="s7-b2" style="left:1600px;top:470px;color:#0E1422">NO CLOUD</div>
+    <div class="stampbadge" id="s7-b3" style="left:1630px;top:640px;color:#EA580C">→ PDF</div>
+  </section>
+
+  <!-- ============ S8 RESULTS ============ -->
+  <section class="scene" id="s8">
+    <div class="abs" style="left:0;right:0;top:170px;text-align:center">
+      <div class="mask" style="display:inline-block"><div class="rise over" id="s8-over" style="justify-content:center"><i></i>Measured in simulation · region world<i></i></div></div>
+      <div class="mask"><div class="rise" id="s8-h" style="font-size:64px;font-weight:800;letter-spacing:-.045em;margin-top:18px">Full mission. Real numbers.</div></div>
+    </div>
+    <div class="tile hero" id="t1" style="left:80px">
+      <div class="ico" style="background:#F97316"><svg viewBox="0 0 24 24" width="32" height="32" class="ic" style="stroke:#fff"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></div>
+      <div><div class="n"><span id="t1n">6</span><small style="color:#6B7486">/6</small></div><div class="t" style="margin-top:22px">casualties found</div><div class="s">5 of 6 inside 7 minutes</div></div>
+    </div>
+    <div class="tile" id="t2" style="left:520px">
+      <div class="ico" style="background:#E8F0FE"><svg viewBox="0 0 24 24" width="32" height="32" class="ic" style="stroke:#2563EB"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+      <div><div class="n"><span id="t2n">1.4</span><small>m</small></div><div class="t" style="margin-top:22px">worst geo-tag error</div><div class="s">0.2 – 1.4 m across all six</div></div>
+    </div>
+    <div class="tile" id="t3" style="left:960px">
+      <div class="ico" style="background:#E8F7EE"><svg viewBox="0 0 24 24" width="32" height="32" class="ic" style="stroke:#16A34A"><path d="m5 12 5 5 9-10"/></svg></div>
+      <div><div class="n" id="t3n">0</div><div class="t" style="margin-top:22px">false positives</div><div class="s">dogs, shadows &amp; fire rejected</div></div>
+    </div>
+    <div class="tile" id="t4" style="left:1400px">
+      <div class="ico" style="background:#FFF1E6"><svg viewBox="0 0 24 24" width="32" height="32" class="ic" style="stroke:#EA580C"><path d="m3 20 6-10 4 6 2-3 6 7z"/></svg></div>
+      <div><div class="n" id="t4n">0</div><div class="t" style="margin-top:22px">crashes</div><div class="s">through a 200 m city, forest &amp; river</div></div>
+    </div>
+  </section>
+
+  <!-- ============ S9 END ============ -->
+  <section class="scene" id="s9">
+    <svg class="abs" id="s9-logo" viewBox="0 0 32 32" style="left:890px;top:250px;width:140px;height:140px;overflow:visible">
+      <path id="s9-lp1f" d="M3 5 16 27 29 5 16 12z" fill="#F97316"/>
+      <path id="s9-lp1" d="M3 5 16 27 29 5 16 12z" fill="none" stroke="#0E1422" stroke-width="1.6" stroke-linejoin="round"/>
+      <path id="s9-lp2" d="M16 12v15" fill="none" stroke="#0E1422" stroke-width="1.6"/>
+    </svg>
+    <div class="abs" style="left:0;right:0;top:440px;text-align:center">
+      <div class="mask"><div class="rise" id="s9-word" style="font-size:104px;font-weight:600;letter-spacing:.2em;padding-left:.2em">DRONE COMMAND</div></div>
+      <div id="s9-tag" style="display:flex;gap:26px;align-items:center;justify-content:center;margin-top:24px;font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:.34em;color:#2A3345">
+        <span id="s9-t1">SEARCH</span><i style="width:9px;height:9px;border-radius:50%;background:#F97316"></i>
+        <span id="s9-t2">DETECT</span><i style="width:9px;height:9px;border-radius:50%;background:#F97316"></i>
+        <span id="s9-t3" style="color:#EA580C">RESCUE</span>
+      </div>
+    </div>
+    <div class="abs" id="s9-foot" style="left:0;right:0;top:780px;display:flex;justify-content:center;gap:14px">
+      <div class="pill"><span class="d"></span>ArduPilot</div>
+      <div class="pill"><span class="d"></span>ROS 2</div>
+      <div class="pill"><span class="d"></span>Gazebo</div>
+      <div class="pill"><span class="d"></span>YOLOv8 · RGB + thermal</div>
+      <div class="pill"><span class="d"></span>Runs offline</div>
+    </div>
+    <div class="abs mono" id="s9-sih" style="left:0;right:0;top:900px;text-align:center;font-size:18px;font-weight:600;letter-spacing:.24em;color:#98A2B3">SMART INDIA HACKATHON 2026</div>
+  </section>
+
+  <!-- ============ HUD FRAME ============ -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="brand"><svg viewBox="0 0 32 32"><path d="M3 5 16 27 29 5 16 12z"/><path d="M16 12v15"/></svg>DRONE COMMAND</div>
+      <div class="chapters" id="chapters"></div>
+      <div class="hud-clock"><span class="rec" id="hud-rec"></span><span id="hud-t">T+00:00:00</span></div>
+    </div>
+  </div>
+
+  <!-- transition slabs -->
+  <div class="slab" id="slabA" style="width:2600px;background:#F97316"></div>
+  <div class="slab" id="slabB" style="width:120px;background:#0E1422"></div>
+</div>
+
+<script>
+/* ================================================================
+   Deterministic timeline: renderAt(t) paints the frame for time t.
+   Nothing animates on its own, so any frame can be captured alone.
+   ================================================================ */
+const W = 1920, H = 1080;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const E = {
+  lin: t => t,
+  outCubic: t => 1 - Math.pow(1 - t, 3),
+  outQuart: t => 1 - Math.pow(1 - t, 4),
+  outQuint: t => 1 - Math.pow(1 - t, 5),
+  outExpo: t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t),
+  inExpo: t => t <= 0 ? 0 : Math.pow(2, 10 * t - 10),
+  inCubic: t => t * t * t,
+  inQuart: t => t * t * t * t,
+  inOutCubic: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  inOutQuart: t => t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2,
+  inOutExpo: t => t <= 0 ? 0 : t >= 1 ? 1 : t < .5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2,
+  inOutSine: t => -(Math.cos(Math.PI * t) - 1) / 2,
+  outBack: t => { const c1 = 1.6, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+  outBackS: t => { const c1 = 2.6, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+};
+const P = (t, a, b, e = E.outExpo) => e(clamp((t - a) / (b - a)));
+const $ = id => document.getElementById(id);
+function tf(el, { x = 0, y = 0, s = 1, sx, sy, r = 0, o, blur } = {}) {
+  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${sx ?? s},${sy ?? s})`;
+  if (o !== undefined) el.style.opacity = o;
+  if (blur !== undefined) el.style.filter = blur > 0.05 ? `blur(${blur}px)` : "none";
+}
+/* Mask reveal: rise in at tIn, rise out at tOut. */
+function rise(el, t, tIn, dur = .7, tOut = 1e9, outDur = .4) {
+  const pin = P(t, tIn, tIn + dur, E.outExpo);
+  const pout = P(t, tOut, tOut + outDur, E.inExpo);
+  const y = (1 - pin) * 115 - pout * 115;
+  el.style.transform = `translateY(${y}%)`;
+  el.style.opacity = t < tIn ? 0 : 1;
+}
+/* Pop: scale + fade in with overshoot, optional exit. */
+function pop(el, t, tIn, dur = .5, { from = .6, y = 0, tOut = 1e9, outDur = .3, r = 0 } = {}) {
+  const p = P(t, tIn, tIn + dur, E.outBack);
+  const pf = P(t, tIn, tIn + dur * .5, E.outCubic);
+  const po = P(t, tOut, tOut + outDur, E.inCubic);
+  tf(el, { y: (1 - p) * y - po * 30, s: lerp(from, 1, p) * (1 - po * .15), r: (1 - p) * r, o: pf * (1 - po) });
+}
+function slideIn(el, t, tIn, dur = .8, { x = 0, y = 40, tOut = 1e9, outDur = .35, ox = 0, oy = -30 } = {}) {
+  const p = P(t, tIn, tIn + dur, E.outExpo);
+  const po = P(t, tOut, tOut + outDur, E.inCubic);
+  tf(el, { x: (1 - p) * x + po * ox, y: (1 - p) * y + po * oy, o: clamp(p * 1.6) * (1 - po) });
+}
+function countTo(el, t, t0, t1, a, b, dec = 0, suffix = "") {
+  const v = lerp(a, b, P(t, t0, t1, E.outQuart));
+  el.textContent = v.toFixed(dec) + suffix;
+}
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+/* ------------------------------------------------------------ timing */
+const T = {
+  s1: [0, 3.9], s2: [3.9, 7.6], s3: [7.6, 16.0], s4: [16.0, 25.4],
+  s5: [25.4, 31.4], s6: [31.4, 39.4], s7: [39.4, 44.0], s8: [44.0, 48.5], s9: [48.3, 53.0],
+};
+const DURATION = 53.0;
+const WIPES = [7.6, 16.0, 25.4, 31.4, 39.4, 44.0];
+const CHAPTERS = [
+  ["01", "SEARCH", T.s3], ["02", "FUSION", T.s4], ["03", "GUARD", T.s5], ["04", "TRIAGE", T.s6], ["05", "SITREP", T.s7],
+];
+$("chapters").innerHTML = CHAPTERS.map(([n], i) => `<div class="chap" id="ch${i}"><span>${n}</span><div class="bar"><b id="chb${i}"></b></div></div>`).join("");
+
+/* ================================================================ S1 */
+function renderS1(t) {
+  const L = $("s1-label");
+  tf(L, { y: (1 - P(t, .05, .8)) * 16, o: P(t, .05, .6) * (1 - P(t, 3.1, 3.4)) });
+  // reticle arms extend
+  const ra = P(t, 0, .6, E.outExpo), rb = 1 - P(t, 3.0, 3.4, E.inCubic);
+  [["r1", "M%a 540 H%b", 860, 920], ["r2", "M%a 540 H%b", 1060, 1000]].forEach(([id, d, a, b]) => {
+    $(id).setAttribute("d", d.replace("%a", a).replace("%b", lerp(a, b, ra * rb)));
+  });
+  [["r3", 440, 500], ["r4", 640, 580]].forEach(([id, a, b]) => $(id).setAttribute("d", `M960 ${a} V${lerp(a, b, ra * rb)}`));
+  $("s1-ret").style.opacity = .12 + .88 * (1 - P(t, .4, .6));   // fades back under the words
+  const cg = $("s1-corners");
+  const cp = P(t, .1, .7, E.outExpo);
+  const pulse = t > 2.5 ? P(t, 2.75, 3.1, E.outBackS) : 0;
+  cg.style.transformOrigin = "960px 540px";
+  cg.style.transform = `scale(${lerp(1.5, 1, cp) * lerp(1, .82, pulse)})`;
+  cg.style.opacity = cp * (1 - P(t, 3.15, 3.4));
+
+  rise($("k1"), t, .45, .6, 1.35, .3);
+  rise($("k2a"), t, 1.5, .55, 2.55, .3);
+  rise($("k2b"), t, 1.75, .55, 2.58, .3);
+  rise($("k2c"), t, 2.0, .55, 2.61, .3);
+  rise($("k2d"), t, 2.25, .55, 2.64, .3);
+  rise($("k3"), t, 2.75, .55, 1e9);
+  const k3 = $("k3"); // punch in
+  const punch = P(t, 3.15, 3.55, E.inExpo);
+  k3.style.transform += ` scale(${1 + punch * .35})`;
+  k3.style.opacity = t < 2.75 ? 0 : 1 - punch;
+  // orange circle wipe
+  const c = $("s1-circle");
+  const cs = P(t, 3.25, 3.85, E.inOutExpo);
+  c.style.transform = `translate(-50%,-50%) scale(${cs * 460})`;
+}
+
+/* ================================================================ S2 */
+const lp1Len = 80, lp2Len = 15;
+function renderS2(t) {
+  const lt = t - T.s2[0];
+  // paper ring opens out of the orange
+  const c = $("s1-circle");
+  // (the orange disc lives in s1; for s2 we draw a paper disc growing over it)
+  const g = $("s2-group");
+  const open = P(lt, 0, .55, E.outExpo);
+  $("s2-inner").style.clipPath = open >= .999 ? "none" : `circle(${open * 1150}px at 960px 540px)`;
+  $("s2-orange").style.display = open >= .999 ? "none" : "block";
+  // logo draw
+  const d1 = P(lt, .02, .8, E.inOutCubic), d2 = P(lt, .5, .9, E.outCubic);
+  const lp1 = $("s2-lp1"), lp2 = $("s2-lp2");
+  lp1.style.strokeDasharray = lp1Len; lp1.style.strokeDashoffset = lp1Len * (1 - d1);
+  lp2.style.strokeDasharray = lp2Len; lp2.style.strokeDashoffset = lp2Len * (1 - d2);
+  $("s2-lp1f").style.opacity = P(lt, .85, 1.2, E.outCubic);
+  const logo = $("s2-logo");
+  const lpop = P(lt, .85, 1.35, E.outBackS);
+  tf(logo, { s: lerp(1, 1.08, Math.sin(lpop * Math.PI)) , r: (1 - P(lt, 0, 1.0, E.outExpo)) * -12 });
+  // wordmark
+  const w = $("s2-word");
+  rise(w, lt, .95, .7);
+  w.style.letterSpacing = lerp(.42, .2, P(lt, .95, 1.9, E.outExpo)) + "em";
+  $("s2-line").style.width = P(lt, 1.2, 1.9, E.outExpo) * 100 + "%";
+  ["s2-t1", "s2-t2", "s2-t3"].forEach((id, i) => pop($(id), lt, 1.6 + i * .25, .45, { from: .5, y: 18 }));
+  ["s2-d1", "s2-d2"].forEach((id, i) => pop($(id), lt, 1.72 + i * .25, .4, { from: 0 }));
+  slideIn($("s2-sub"), lt, 2.35, .8, { y: 24 });
+  // gentle drift, then exit before the wipe
+  const drift = lt * 4;
+  tf(g, { y: -drift, s: 1 + lt * .006 });
+}
+
+/* ================================================================ S3 map */
+const M3 = { px: 748, m: 200, G: 80 };
+M3.k = M3.px / M3.m;
+const PRIOR_BLOBS = [
+  // city (NE) rubble, dense
+  [132, 48, 16, 1.0], [165, 42, 14, .8], [150, 72, 12, .7], [185, 70, 10, .5],
+  // village (SW)
+  [26, 128, 14, .9], [70, 124, 12, .8], [22, 172, 14, .85], [68, 176, 14, .9], [45, 150, 10, .5],
+  // river banks (SE)
+  [158, 128, 9, .8], [172, 160, 9, .85], [162, 190, 9, .7],
+  // forest clearing (NW) + street
+  [46, 52, 12, .5], [124, 108, 8, .55], [104, 150, 8, .35],
+];
+const CASUALTIES = [
+  [137, 54], [26, 150], [66, 178], [168, 150], [46, 54], [125, 110],
+];
+const PATH3 = [
+  [100, 100], [118, 104], [126, 110], [138, 84], [134, 50], [162, 40], [182, 64], [158, 84],
+  [158, 122], [170, 152], [164, 188], [126, 186], [74, 180], [42, 170], [24, 150], [26, 124], [60, 118],
+  [70, 90], [48, 56], [62, 26], [86, 18],
+];
+function pathBuild(pts) {
+  const seg = []; let L = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); L += d; }
+  return { pts, seg, L };
+}
+function pathAt(P_, s) {
+  s = clamp(s, 0, P_.L);
+  for (let i = 0; i < P_.seg.length; i++) {
+    if (s <= P_.seg[i] || i === P_.seg.length - 1) {
+      const u = P_.seg[i] ? clamp(s / P_.seg[i]) : 0, a = P_.pts[i], b = P_.pts[i + 1];
+      return [lerp(a[0], b[0], u), lerp(a[1], b[1], u), Math.atan2(b[1] - a[1], b[0] - a[0])];
+    }
+    s -= P_.seg[i];
+  }
+}
+const path3 = pathBuild(PATH3);
+// smooth the path with Chaikin so turns look flown, not plotted
+function chaikin(pts, n) { for (let k = 0; k < n; k++) { const o = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1]; o.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25], [a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]); } o.push(pts[pts.length - 1]); pts = o; } return pts; }
+const path3s = pathBuild(chaikin(PATH3, 3));
+const prior = new Float32Array(M3.G * M3.G);
+(function () {
+  const cm = M3.m / M3.G;
+  for (let j = 0; j < M3.G; j++) for (let i = 0; i < M3.G; i++) {
+    const x = (i + .5) * cm, y = (j + .5) * cm; let v = .04;
+    for (const [bx, by, s, a] of PRIOR_BLOBS) v += a * Math.exp(-((x - bx) ** 2 + (y - by) ** 2) / (2 * s * s));
+    prior[j * M3.G + i] = v;
+  }
+  let mx = 0; for (const v of prior) mx = Math.max(mx, v);
+  for (let i = 0; i < prior.length; i++) prior[i] /= mx;
+})();
+const priorSum = prior.reduce((a, b) => a + b, 0);
+const HEAT = [[0, [255, 237, 160, 0]], [.18, [254, 217, 118, .28]], [.42, [253, 141, 60, .52]], [.7, [240, 59, 32, .66]], [1, [189, 0, 38, .76]]];
+function heatRGBA(v) {
+  v = clamp(v);
+  for (let i = 1; i < HEAT.length; i++) if (v <= HEAT[i][0]) {
+    const [p0, c0] = HEAT[i - 1], [p1, c1] = HEAT[i]; const u = (v - p0) / (p1 - p0);
+    return c0.map((x, k) => x + (c1[k] - x) * u);
+  }
+  return HEAT[HEAT.length - 1][1];
+}
+const heatC = document.createElement("canvas"); heatC.width = heatC.height = M3.G;
+const FLY3 = [8.55, 15.9];
+function drawDroneTop(ctx, x, y, hdg, sc = 1, spin = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hdg + Math.PI / 4); ctx.scale(sc, sc);
+  ctx.strokeStyle = "#0E1422"; ctx.lineWidth = 3.2; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(-13, -13); ctx.lineTo(13, 13); ctx.moveTo(13, -13); ctx.lineTo(-13, 13); ctx.stroke();
+  for (const [a, b] of [[-13, -13], [13, -13], [13, 13], [-13, 13]]) {
+    ctx.beginPath(); ctx.arc(a, b, 9, 0, 7); ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+    ctx.save(); ctx.translate(a, b); ctx.rotate(spin); ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.lineWidth = 1.6; ctx.strokeStyle = "rgba(14,20,34,.55)"; ctx.stroke(); ctx.restore();
+  }
+  rr(ctx, -8, -8, 16, 16, 4); ctx.fillStyle = "#F97316"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#0E1422"; ctx.stroke();
+  ctx.restore();
+}
+function renderS3(t) {
+  const lt = t - T.s3[0];
+  // text
+  rise($("s3-over"), t, 7.75, .6);
+  rise($("s3-h1"), t, 7.85, .7); rise($("s3-h2"), t, 7.95, .7); rise($("s3-h3"), t, 8.05, .7);
+  slideIn($("s3-body"), t, 8.35, .8, { y: 20, tOut: 13.0, outDur: .3, oy: -20 });
+  // stat block
+  const st = $("s3-stat");
+  const sp = P(t, 13.25, 13.9, E.outExpo);
+  tf(st, { y: (1 - sp) * 60, o: clamp(sp * 2) });
+  countTo($("s3-num"), t, 13.3, 14.4, 0, 51);
+  // card
+  const cp = P(t, 7.75, 8.6, E.outExpo);
+  tf($("s3-card"), { x: (1 - cp) * 120, s: lerp(.94, 1, cp), o: clamp(cp * 1.5) });
+  pop($("s3-pos"), t, 8.5, .6, { from: .8, y: 20 });
+  pop($("s3-cas"), t, 8.65, .6, { from: .8, y: 20 });
+  slideIn($("s3-legend"), t, 8.9, .7, { y: 14 });
+
+  // simulate the look history up to now
+  const u = P(t, FLY3[0], FLY3[1], E.inOutSine);
+  const sNow = u * path3s.L;
+  const G = M3.G, cm = M3.m / G;
+  const cur = new Float32Array(prior);
+  const bloom = P(t, 8.3, 9.3, E.outCubic);
+  const step = 1.6, half = 11;
+  const trail = [];
+  for (let s = 0; s <= sNow; s += step) {
+    const [x, y] = pathAt(path3s, s); trail.push([x, y]);
+    const i0 = Math.max(0, Math.floor((x - half) / cm)), i1 = Math.min(G - 1, Math.floor((x + half) / cm));
+    const j0 = Math.max(0, Math.floor((y - half) / cm)), j1 = Math.min(G - 1, Math.floor((y + half) / cm));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) cur[j * G + i] *= .83;
+  }
+  const [dx, dy, hdg] = pathAt(path3s, sNow);
+  trail.push([dx, dy]);
+  let sum = 0; for (const v of cur) sum += v;
+  const pos = (1 - sum / priorSum) * 100 * 1.32;   // report against the mission's reachable mass
+  $("s3-posv").textContent = Math.min(90, pos).toFixed(0);
+  $("s3-posb").style.width = Math.min(90, pos) + "%";
+
+  // heat raster
+  const hctx = heatC.getContext("2d");
+  const img = hctx.createImageData(G, G);
+  for (let k = 0; k < G * G; k++) {
+    const c = heatRGBA(cur[k] * bloom);
+    img.data[k * 4] = c[0]; img.data[k * 4 + 1] = c[1]; img.data[k * 4 + 2] = c[2]; img.data[k * 4 + 3] = c[3] * 255 * bloom;
+  }
+  hctx.putImageData(img, 0, 0);
+  const cv = $("s3-canvas"), ctx = cv.getContext("2d"), k = M3.k;
+  ctx.clearRect(0, 0, 748, 748);
+  ctx.save(); ctx.filter = "blur(7px)"; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(heatC, -6, -6, 760, 760); ctx.restore();
+  // scan sweep during bloom
+  if (t > 8.3 && t < 9.5) {
+    const sy = P(t, 8.3, 9.4, E.inOutCubic) * 748;
+    const gr = ctx.createLinearGradient(0, sy - 90, 0, sy);
+    gr.addColorStop(0, "rgba(249,115,22,0)"); gr.addColorStop(1, "rgba(249,115,22,.22)");
+    ctx.fillStyle = gr; ctx.fillRect(0, sy - 90, 748, 90);
+    ctx.fillStyle = "#F97316"; ctx.fillRect(0, sy - 2, 748, 2.5);
+  }
+  if (t >= FLY3[0] - .3) {
+    const fin = P(t, FLY3[0] - .3, FLY3[0] + .2);
+    // trail
+    ctx.save(); ctx.globalAlpha = fin;
+    ctx.lineJoin = ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 7; ctx.beginPath();
+    trail.forEach(([x, y], i) => i ? ctx.lineTo(x * k, y * k) : ctx.moveTo(x * k, y * k)); ctx.stroke();
+    ctx.strokeStyle = "#0284C7"; ctx.lineWidth = 3.5; ctx.stroke();
+    // camera footprint
+    ctx.save(); ctx.translate(dx * k, dy * k); ctx.rotate(hdg);
+    const fh = half * k;
+    ctx.fillStyle = "rgba(14,20,34,.07)"; ctx.fillRect(-fh, -fh, fh * 2, fh * 2);
+    ctx.setLineDash([8, 6]); ctx.lineDashOffset = -t * 30; ctx.strokeStyle = "rgba(14,20,34,.55)"; ctx.lineWidth = 1.8; ctx.strokeRect(-fh, -fh, fh * 2, fh * 2);
+    ctx.restore();
+    drawDroneTop(ctx, dx * k, dy * k, hdg, 1, t * 40);
+    ctx.restore();
+  }
+  // casualties
+  let found = 0;
+  CASUALTIES.forEach(([cx, cy], idx) => {
+    // first time the footprint centre passes within reach
+    let sHit = null;
+    for (let s = 0; s <= path3s.L; s += 1) { const [x, y] = pathAt(path3s, s); if (Math.hypot(x - cx, y - cy) < 9) { sHit = s; break; } }
+    if (sHit === null) return;
+    const tHit = FLY3[0] + (FLY3[1] - FLY3[0]) * invInOutSine(sHit / path3s.L);
+    if (t < tHit) return;
+    found++;
+    const a = P(t, tHit, tHit + .45, E.outBackS), ring = P(t, tHit, tHit + .9, E.outCubic);
+    const X = cx * k, Y = cy * k;
+    ctx.beginPath(); ctx.arc(X, Y, 14 + ring * 40, 0, 7); ctx.strokeStyle = `rgba(220,38,38,${.7 * (1 - ring)})`; ctx.lineWidth = 3; ctx.stroke();
+    ctx.save(); ctx.translate(X, Y); ctx.scale(a, a);
+    ctx.shadowColor = "rgba(14,20,34,.35)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+    ctx.beginPath(); ctx.arc(0, 0, 14, 0, 7); ctx.fillStyle = "#DC2626"; ctx.fill();
+    ctx.shadowColor = "transparent"; ctx.lineWidth = 3; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, -3.5, 3.6, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 6, 6.5, 4, 0, Math.PI, 0); ctx.fill();
+    ctx.restore();
+    // label
+    const la = P(t, tHit + .15, tHit + .55, E.outExpo);
+    ctx.save(); ctx.globalAlpha = la; ctx.translate(X + 22 + (1 - la) * -10, Y - 15);
+    ctx.font = "700 14px JetBrains Mono";
+    const txt = `C-${idx + 1}`; const w = ctx.measureText(txt).width + 18;
+    rr(ctx, 0, 0, w, 30, 8); ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.fill();
+    ctx.fillStyle = "#0E1422"; ctx.fillText(txt, 9, 20); ctx.restore();
+  });
+  $("s3-casv").textContent = found;
+}
+function invInOutSine(y) { return Math.acos(1 - 2 * y) / Math.PI; }
+
+/* ================================================================ S4 feed */
+const FW = 1040, FH = 780;
+const rgbC = document.createElement("canvas"); rgbC.width = FW; rgbC.height = FH;
+const thC = document.createElement("canvas"); thC.width = FW; thC.height = FH;
+const PERSON = { x: 360, y: 440, r: .5 };
+const DOG = { x: 760, y: 300, r: -.35 };
+const EMBER = { x: 850, y: 640 };
+function drawPerson(ctx, mode) {
+  const th = mode === "th";
+  ctx.save(); ctx.translate(PERSON.x, PERSON.y); ctx.rotate(PERSON.r);
+  if (!th) { ctx.save(); ctx.translate(10, 12); ctx.filter = "blur(8px)"; ctx.fillStyle = "rgba(40,30,20,.35)"; rr(ctx, -100, -38, 200, 76, 30); ctx.fill(); ctx.restore(); }
+  const C = th ? { pants: "rgb(200,200,200)", jacket: "rgb(214,214,214)", skin: "rgb(250,250,250)", hair: "rgb(215,215,215)", shoe: "rgb(160,160,160)" }
+               : { pants: "#2E3440", jacket: "#2F6FBF", skin: "#C58A5B", hair: "#2A1E18", shoe: "#1B1F27" };
+  ctx.lineCap = "round";
+  // legs
+  ctx.strokeStyle = C.pants; ctx.lineWidth = 24;
+  ctx.beginPath(); ctx.moveTo(-18, -12); ctx.lineTo(-86, -24); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-18, 12); ctx.lineTo(-84, 26); ctx.stroke();
+  ctx.fillStyle = C.shoe; ctx.beginPath(); ctx.ellipse(-96, -26, 10, 9, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(-94, 28, 10, 9, 0, 0, 7); ctx.fill();
+  // arms
+  ctx.strokeStyle = C.jacket; ctx.lineWidth = 17;
+  ctx.beginPath(); ctx.moveTo(48, -28); ctx.lineTo(20, -52); ctx.lineTo(-10, -50); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(48, 28); ctx.lineTo(70, 56); ctx.stroke();
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(-16, -50, 9, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(76, 62, 9, 0, 7); ctx.fill();
+  // torso
+  ctx.fillStyle = C.jacket; rr(ctx, -24, -33, 84, 66, 24); ctx.fill();
+  if (!th) { ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(56, 0); ctx.stroke(); }
+  // head
+  ctx.fillStyle = C.skin; ctx.beginPath(); ctx.arc(80, 0, 20, 0, 7); ctx.fill();
+  ctx.fillStyle = C.hair; ctx.beginPath(); ctx.arc(84, 0, 20, -1.3, 1.3); ctx.fill();
+  ctx.restore();
+}
+function drawDog(ctx, mode) {
+  const th = mode === "th";
+  ctx.save(); ctx.translate(DOG.x, DOG.y); ctx.rotate(DOG.r);
+  if (!th) { ctx.save(); ctx.translate(8, 10); ctx.filter = "blur(7px)"; ctx.fillStyle = "rgba(40,30,20,.35)"; ctx.beginPath(); ctx.ellipse(0, 0, 58, 26, 0, 0, 7); ctx.fill(); ctx.restore(); }
+  const fur = th ? "rgb(182,182,182)" : "#9A7447", dark = th ? "rgb(170,170,170)" : "#5B412A", nose = th ? "rgb(196,196,196)" : "#1B1F27";
+  ctx.lineCap = "round"; ctx.strokeStyle = dark; ctx.lineWidth = 9;
+  ctx.lineWidth = 13; for (const [a, b, c, d] of [[-30, -14, -34, -30], [-30, 14, -34, 30], [26, -14, 28, -30], [26, 14, 28, 30]]) { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); }
+  ctx.lineWidth = 8; ctx.strokeStyle = fur; ctx.beginPath(); ctx.moveTo(-50, 0); ctx.quadraticCurveTo(-72, -6, -78, -22); ctx.stroke();
+  ctx.fillStyle = fur; ctx.beginPath(); ctx.ellipse(-4, 0, 56, 29, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(56, 0, 23, 20, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(76, 0, 11, 8, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(48, -20, 13, 8, -.5, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(48, 20, 13, 8, .5, 0, 7); ctx.fill();
+  ctx.fillStyle = nose; ctx.beginPath(); ctx.arc(86, 0, 4, 0, 7); ctx.fill();
+  ctx.restore();
+}
+function buildFeed() {
+  const rnd = mulberry(7);
+  // ---- RGB
+  let c = rgbC.getContext("2d");
+  c.fillStyle = "#CBC2AE"; c.fillRect(0, 0, FW, FH);
+  const g = c.createRadialGradient(520, 390, 100, 520, 390, 700); g.addColorStop(0, "rgba(255,255,255,.12)"); g.addColorStop(1, "rgba(60,50,30,.18)");
+  c.fillStyle = g; c.fillRect(0, 0, FW, FH);
+  // grass edge
+  for (let i = 0; i < 900; i++) { const x = rnd() * 260 - 60, y = rnd() * FH; c.fillStyle = `rgba(${110 + rnd() * 30},${128 + rnd() * 30},${80 + rnd() * 20},.5)`; c.beginPath(); c.arc(x, y, 3 + rnd() * 9, 0, 7); c.fill(); }
+  // specks
+  for (let i = 0; i < 9000; i++) { const x = rnd() * FW, y = rnd() * FH, v = rnd(); c.fillStyle = v < .5 ? "rgba(120,108,88,.35)" : "rgba(235,228,212,.45)"; c.fillRect(x, y, 1 + rnd() * 2.5, 1 + rnd() * 2.5); }
+  // concrete slab
+  c.save(); c.translate(560, 560); c.rotate(-.12); c.shadowColor = "rgba(40,30,20,.35)"; c.shadowBlur = 18; c.shadowOffsetX = 10; c.shadowOffsetY = 12;
+  c.fillStyle = "#B9B4A8"; c.fillRect(-150, -60, 300, 120); c.shadowColor = "transparent";
+  c.strokeStyle = "rgba(70,65,58,.55)"; c.lineWidth = 2.5; c.beginPath(); c.moveTo(-150, -10); c.lineTo(-60, 5); c.lineTo(10, -30); c.lineTo(90, 20); c.lineTo(150, 8); c.stroke();
+  c.strokeStyle = "rgba(90,85,78,.4)"; c.lineWidth = 3; for (let i = -130; i < 150; i += 36) { c.beginPath(); c.moveTo(i, -60); c.lineTo(i, 60); c.stroke(); }
+  c.restore();
+  // rubble
+  for (let i = 0; i < 26; i++) {
+    const x = 180 + rnd() * 820, y = 40 + rnd() * 720;
+    if (Math.hypot(x - PERSON.x, y - PERSON.y) < 150 || Math.hypot(x - DOG.x, y - DOG.y) < 110 || Math.hypot(x - EMBER.x, y - EMBER.y) < 90) continue;
+    const r = 10 + rnd() * 26, n = 5 + (rnd() * 3 | 0), sh = ["#9CA3AF", "#A8A29E", "#8B8580", "#B8B1A5", "#7C7670"][i % 5];
+    c.save(); c.translate(x, y); c.rotate(rnd() * 6); c.shadowColor = "rgba(40,30,20,.35)"; c.shadowBlur = 8; c.shadowOffsetX = 5; c.shadowOffsetY = 6;
+    c.fillStyle = sh; c.beginPath(); for (let k = 0; k < n; k++) { const a = k / n * 6.283, rr_ = r * (.65 + rnd() * .5); c.lineTo(Math.cos(a) * rr_, Math.sin(a) * rr_); } c.closePath(); c.fill();
+    c.restore();
+  }
+  // embers / smouldering debris
+  c.save(); c.translate(EMBER.x, EMBER.y);
+  c.fillStyle = "#3A3431"; c.beginPath(); for (let k = 0; k < 11; k++) { const a = k / 11 * 6.283, r = 58 + Math.sin(k * 2.3) * 14; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill();
+  c.fillStyle = "#57504B"; for (let k = 0; k < 40; k++) { c.fillRect(-50 + rnd() * 100, -40 + rnd() * 80, 3, 3); }
+  for (let k = 0; k < 14; k++) { const x = -30 + rnd() * 60, y = -26 + rnd() * 52; const eg = c.createRadialGradient(x, y, 0, x, y, 12); eg.addColorStop(0, "rgba(255,190,80,.95)"); eg.addColorStop(1, "rgba(255,90,20,0)"); c.fillStyle = eg; c.fillRect(x - 12, y - 12, 24, 24); }
+  c.restore();
+  drawDog(c, "rgb"); drawPerson(c, "rgb");
+
+  // ---- Thermal: paint temperatures as grey levels, blur, then ironbow LUT
+  const tc = document.createElement("canvas"); tc.width = FW; tc.height = FH; c = tc.getContext("2d");
+  const base = 62;
+  c.fillStyle = `rgb(${base},${base},${base})`; c.fillRect(0, 0, FW, FH);
+  const r2 = mulberry(11);
+  for (let i = 0; i < 260; i++) { const x = r2() * FW, y = r2() * FH, v = base + (r2() - .5) * 16; c.fillStyle = `rgba(${v},${v},${v},.5)`; c.beginPath(); c.arc(x, y, 10 + r2() * 40, 0, 7); c.fill(); }
+  c.save(); c.translate(560, 560); c.rotate(-.12); c.fillStyle = "rgb(78,78,78)"; c.fillRect(-150, -60, 300, 120); c.restore();
+  // embers: ash ring + white-hot core
+  c.save(); c.translate(EMBER.x, EMBER.y); c.filter = "blur(10px)";
+  c.fillStyle = "rgb(140,140,140)"; c.beginPath(); c.arc(0, 0, 60, 0, 7); c.fill(); c.filter = "blur(5px)";
+  for (let k = 0; k < 9; k++) { c.fillStyle = "rgb(255,255,255)"; c.beginPath(); c.arc(-26 + r2() * 52, -22 + r2() * 44, 7 + r2() * 8, 0, 7); c.fill(); }
+  c.restore();
+  c.save(); c.filter = "blur(3px)"; drawDog(c, "th"); drawPerson(c, "th"); c.restore();
+  const src = c.getImageData(0, 0, FW, FH);
+  const LUT = [[0, [12, 6, 34]], [.2, [48, 12, 96]], [.38, [110, 22, 120]], [.55, [196, 52, 76]], [.7, [238, 110, 36]], [.84, [252, 190, 50]], [.94, [254, 240, 150]], [1, [255, 255, 240]]];
+  const lut = new Uint8ClampedArray(256 * 3);
+  for (let v = 0; v < 256; v++) { const x = v / 255; for (let i = 1; i < LUT.length; i++) if (x <= LUT[i][0]) { const [p0, c0] = LUT[i - 1], [p1, c1] = LUT[i]; const u = (x - p0) / (p1 - p0); for (let k = 0; k < 3; k++) lut[v * 3 + k] = c0[k] + (c1[k] - c0[k]) * u; break; } }
+  const out = thC.getContext("2d").createImageData(FW, FH);
+  for (let p = 0; p < FW * FH; p++) { const v = src.data[p * 4]; out.data[p * 4] = lut[v * 3]; out.data[p * 4 + 1] = lut[v * 3 + 1]; out.data[p * 4 + 2] = lut[v * 3 + 2]; out.data[p * 4 + 3] = 255; }
+  thC.getContext("2d").putImageData(out, 0, 0);
+}
+function boxStyle(el, x, y, w, h, color, dashed) {
+  el.style.left = x + "px"; el.style.top = y + "px"; el.style.width = w + "px"; el.style.height = h + "px";
+  el.style.border = `3px ${dashed ? "dashed" : "solid"} ${color}`;
+  el.style.boxShadow = `0 0 0 1px rgba(255,255,255,.35), inset 0 0 0 1px rgba(255,255,255,.25)`;
+  el.firstElementChild.style.background = color;
+}
+function renderS4(t) {
+  const lt = t - T.s4[0];
+  rise($("s4-over"), t, 16.2, .6);
+  rise($("s4-h1"), t, 16.3, .7); rise($("s4-h2"), t, 16.4, .7); rise($("s4-h3"), t, 16.55, .7);
+  const fp = P(t, 16.1, 16.95, E.outExpo);
+  tf($("s4-feed"), { x: (1 - fp) * -120, s: lerp(.94, 1, fp), o: clamp(fp * 1.5) });
+
+  // split position (0 = all thermal, 100 = all RGB)
+  let split = 100;
+  split = lerp(100, 54, P(t, 16.9, 17.8, E.inOutQuart));
+  split = lerp(split, 34, P(t, 21.9, 22.7, E.inOutQuart));
+  // hover drift
+  const jx = Math.sin(t * 1.3) * 5, jy = Math.cos(t * 1.1) * 4;
+  const cv = $("s4-canvas"), ctx = cv.getContext("2d");
+  ctx.clearRect(0, 0, FW, FH);
+  ctx.save(); ctx.translate(jx, jy); ctx.scale(1.02, 1.02); ctx.translate(-10, -8);
+  ctx.drawImage(thC, 0, 0);
+  // RGB side, clipped by the diagonal (same geometry as the dashboard split)
+  ctx.save(); ctx.beginPath();
+  ctx.moveTo(0, -20); ctx.lineTo((split + 4) / 100 * FW + 10, -20); ctx.lineTo((split - 4) / 100 * FW + 10, FH + 20); ctx.lineTo(0, FH + 20); ctx.closePath(); ctx.clip();
+  ctx.drawImage(rgbC, 0, 0);
+  // night: RGB goes dark and blue
+  const night = P(t, 21.0, 21.6, E.inOutCubic);
+  if (night > 0) { ctx.fillStyle = `rgba(8,14,32,${.72 * night})`; ctx.fillRect(0, 0, FW, FH); }
+  ctx.restore();
+  ctx.restore();
+  // divider
+  const x0 = (split + 4) / 100 * FW, x1 = (split - 4) / 100 * FW;
+  if (split < 99.5) {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x1, FH); ctx.stroke();
+  }
+  const kn = $("s4-knob");
+  kn.style.left = (split / 100 * FW - 28) + "px"; kn.style.top = (FH / 2 - 28) + "px";
+  kn.style.opacity = split < 99.5 ? P(t, 16.9, 17.2) : 0;
+  const lab = P(t, 17.4, 17.8);
+  $("s4-lL").style.opacity = lab; $("s4-lR").style.opacity = lab;
+  // segmented control
+  const segOn = t > 16.9 ? "sp" : "ai";
+  $("s4-seg").querySelectorAll("span").forEach(s => s.classList.toggle("on", s.dataset.k === segOn));
+  pop($("s4-seg"), t, 16.5, .5, { from: .85 });
+  pop($("s4-hud"), t, 16.6, .5, { from: .85 });
+  const stg = $("s4-stage");
+  stg.textContent = t < 20.3 ? "VERIFYING" : "CONFIRMED";
+  stg.style.color = t < 20.3 ? "#EA580C" : "#16A34A";
+
+  // detection boxes
+  const bA = $("s4-bA"), bB = $("s4-bB"), bC = $("s4-bC");
+  const bx = (x, y) => [x + jx * 1.02 - 10 + (x - 0) * .02, y + jy * 1.02 - 8 + (y - 0) * .02];
+  const conf = t >= 20.3;
+  const [ax, ay] = bx(242, 332); boxStyle(bA, ax, ay, 245, 222, conf ? "#16A34A" : "#F97316", false);
+  const [bbx, bby] = bx(660, 238); boxStyle(bB, bbx, bby, 205, 130, conf ? "#DC2626" : "#F97316", conf);
+  const [cx, cy] = bx(770, 560); boxStyle(bC, cx, cy, 165, 160, "#EA580C", false);
+  $("s4-tA").innerHTML = conf ? "CASUALTY · CONFIRMED" : "person 0.92";
+  $("s4-tB").innerHTML = conf ? "ANIMAL · REJECTED" : "person 0.64";
+  $("s4-tC").innerHTML = "FIRE &gt;323 K";
+  const snap = (el, t0) => { const p = P(t, t0, t0 + .35, E.outBack); tf(el, { s: lerp(1.25, 1, p), o: clamp(P(t, t0, t0 + .12)) }); };
+  snap(bA, 18.0); snap(bB, 18.15);
+  // rejection shake
+  if (conf) { const sh = Math.sin((t - 20.3) * 60) * 7 * (1 - P(t, 20.3, 20.75, E.lin)); bB.style.transform += ` translateX(${sh}px)`; }
+  const fireP = P(t, 20.85, 21.2, E.outBack); tf(bC, { s: lerp(1.25, 1, fireP), o: clamp(P(t, 20.85, 20.97)) * (split < 80 ? 1 : 0) });
+  // tag pop on state change
+  const tagp = P(t, 20.3, 20.6, E.outBackS);
+  if (conf) { $("s4-tA").style.transform = `scale(${lerp(.7, 1, tagp)})`; $("s4-tB").style.transform = `scale(${lerp(.7, 1, tagp)})`; }
+  else { $("s4-tA").style.transform = $("s4-tB").style.transform = "none"; }
+  $("s4-tA").style.transformOrigin = $("s4-tB").style.transformOrigin = "0 100%";
+
+  // day/night toggle
+  pop($("s4-toggle"), t, 20.9, .45, { from: .7 });
+  const thumbX = P(t, 21.0, 21.35, E.outBack) * 30;
+  $("s4-thumb").style.left = 3 + thumbX + "px";
+  const isNight = t > 21.15;
+  $("s4-thumb").style.background = isNight ? "#1E3A8A" : "#F97316";
+  $("s4-toggle").querySelector(".track").style.background = isNight ? "#DBE4FF" : "#FDE7C8";
+  $("s4-tlabel").textContent = isNight ? "NIGHT · THERMAL" : "DAY";
+  $("s4-ticon").innerHTML = isNight ? '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>' : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+
+  // fusion card
+  const fu = $("s4-fusion");
+  slideIn(fu, t, 18.55, .7, { x: 60, y: 0, tOut: 22.85, outDur: .35, ox: -40, oy: 0 });
+  [["fA1", 19.0], ["fB1", 19.1], ["fA2", 19.4], ["fB2", 19.5], ["fA3", 19.8], ["fB3", 19.95]].forEach(([id, t0]) => {
+    const el = $(id); const p = P(t, t0, t0 + .35, E.outBackS);
+    el.style.opacity = clamp(P(t, t0, t0 + .15)); el.firstElementChild.style.transform = `scale(${p})`;
+  });
+  // stat
+  const s = $("s4-stat");
+  const sp = P(t, 23.05, 23.7, E.outExpo);
+  tf(s, { y: (1 - sp) * 60, o: clamp(sp * 2) });
+  pop($("s4-n1"), t, 23.1, .5, { from: .6 });
+  pop($("s4-arrow"), t, 23.35, .45, { from: 0 });
+  pop($("s4-n2"), t, 23.55, .55, { from: 1.6 });
+}
+
+/* ================================================================ S5 side view */
+const S5 = { w: 1760, h: 640, ground: 588, mpx: 21, droneX: 640 };
+const BUILD = [
+  // [worldX start (m), width (m), height (m), tone]
+  [-6, 8, 5, "#E7E5DF"], [9, 6, 7, "#E2E0D9"], [48, 16, 18, "#D5D2CA"], [70, 7, 6, "#E2E0D9"], [82, 10, 9, "#E7E5DF"], [98, 8, 5, "#E2E0D9"],
+];
+const TALL = BUILD[2];
+// Visual speed profile (time-compressed): cruise, caution while the wall still needs climbing, then cruise.
+function s5Speed(f) {
+  if (f < 1.1) return 21;
+  if (f < 1.5) return lerp(21, 7, (f - 1.1) / .4);
+  if (f < 2.7) return 7;
+  if (f < 3.1) return lerp(7, 17, (f - 2.7) / .4);
+  return 17;
+}
+const S5D = (() => { const a = [0]; for (let i = 1; i <= 800; i++) a.push(a[i - 1] + s5Speed((i - .5) * .01) * .01); return a; })();
+function s5World(f) { f = clamp(f, 0, 7.99); const i = Math.floor(f * 100), u = f * 100 - i; return lerp(S5D[i], S5D[i + 1], u); }
+const WALL = 48, WALL_END = 64;
+function s5Alt(f) {
+  const d = s5World(Math.max(0, f));
+  const up = E.inOutCubic(clamp((d - 25) / 14));       // climbs once the wall is ~23 m ahead
+  const down = E.inOutCubic(clamp((d - 67) / 13));     // comes back down once clear of it
+  return lerp(lerp(8, TALL[2] + 4, up), 8, down);
+}
+function s5Status(f) {
+  const d = s5World(Math.max(0, f));
+  if (d < 25) return ["CORRIDOR CLEAR", "#16A34A"];
+  if (d < 39) return ["CLIMBING · CAUTION 2 m/s", "#D97706"];
+  if (d < 67) return ["HOLDING TOP + 4 m", "#2563EB"];
+  if (d < 80) return ["DESCENDING", "#0284C7"];
+  return ["CORRIDOR CLEAR", "#16A34A"];
+}
+function renderS5(t) {
+  const lt = t - T.s5[0];
+  rise($("s5-over"), t, 25.55, .6);
+  rise($("s5-h1"), t, 25.65, .7); rise($("s5-h2"), t, 25.85, .7);
+  pop($("s5-c1"), t, 26.0, .5, { from: .8, y: 12 }); pop($("s5-c2"), t, 26.12, .5, { from: .8, y: 12 });
+  const cp = P(t, 25.5, 26.3, E.outExpo);
+  tf($("s5-card"), { y: (1 - cp) * 90, o: clamp(cp * 1.6) });
+
+  const cv = $("s5-canvas"), ctx = cv.getContext("2d");
+  const { w, h, ground: GY, mpx } = S5;
+  ctx.clearRect(0, 0, w, h);
+  const sky = ctx.createLinearGradient(0, 0, 0, GY); sky.addColorStop(0, "#FFFFFF"); sky.addColorStop(1, "#F3F1EC");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+  const fly = lt - .35;
+  const d = s5World(Math.max(0, fly));             // world metres under the drone
+  const alt = s5Alt(fly);
+  const X = m => S5.droneX + (m - d) * mpx;       // world m -> px
+  const Y = m => GY - m * mpx;
+  // far skyline parallax
+  ctx.fillStyle = "#ECEAE4";
+  for (let i = -2; i < 14; i++) { const bx = ((i * 190 - d * mpx * .3) % 2660 + 2660) % 2660 - 300; const bh = 60 + ((i * 53) % 5) * 34; ctx.fillRect(bx, GY - bh, 120 + (i % 3) * 30, bh); }
+  // altitude grid
+  ctx.font = "600 14px JetBrains Mono"; ctx.fillStyle = "#98A2B3"; ctx.textAlign = "left";
+  for (let m = 0; m <= 20; m += 5) { const y = Y(m); ctx.fillStyle = "rgba(14,20,34,.06)"; ctx.fillRect(70, y, w - 70, 1); ctx.fillStyle = "#98A2B3"; ctx.fillText(`${m} m`, 18, y + 5); }
+  // buildings
+  for (const [bx0, bw, bh, tone] of BUILD) {
+    const x = X(bx0), ww = bw * mpx, y = Y(bh);
+    if (x > w || x + ww < 0) continue;
+    ctx.fillStyle = tone; ctx.fillRect(x, y, ww, bh * mpx);
+    ctx.fillStyle = "rgba(14,20,34,.10)";
+    for (let fy = y + 18; fy < GY - 20; fy += 42) for (let fx = x + 16; fx < x + ww - 22; fx += 40) ctx.fillRect(fx, fy, 20, 22);
+    ctx.fillStyle = "rgba(14,20,34,.18)"; ctx.fillRect(x, y, ww, 4);
+  }
+  // ground
+  ctx.fillStyle = "#0E1422"; ctx.fillRect(0, GY, w, 2.5);
+  ctx.fillStyle = "#EDEBE5"; ctx.fillRect(0, GY + 2.5, w, h - GY);
+  ctx.strokeStyle = "rgba(14,20,34,.12)"; ctx.lineWidth = 2;
+  for (let i = 0; i < 60; i++) { const gx = ((i * 40 - d * mpx) % 2400 + 2400) % 2400 - 40; ctx.beginPath(); ctx.moveTo(gx, GY + 12); ctx.lineTo(gx - 18, GY + 40); ctx.stroke(); }
+  // top + 4 m guide
+  const tallX = X(TALL[0]);
+  const guideA = P(lt, 1.0, 1.4) * (1 - P(lt, 5.3, 5.7));
+  if (guideA > 0) {
+    ctx.save(); ctx.globalAlpha = guideA;
+    ctx.setLineDash([10, 8]); ctx.strokeStyle = "#16A34A"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(tallX - 90, Y(TALL[2] + 4)); ctx.lineTo(tallX + TALL[1] * mpx + 90, Y(TALL[2] + 4)); ctx.stroke(); ctx.setLineDash([]);
+    // bracket showing +4 m
+    const bxp = tallX + TALL[1] * mpx + 24;
+    ctx.strokeStyle = "#16A34A"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(bxp, Y(TALL[2])); ctx.lineTo(bxp + 10, Y(TALL[2])); ctx.lineTo(bxp + 10, Y(TALL[2] + 4)); ctx.lineTo(bxp, Y(TALL[2] + 4)); ctx.stroke();
+    ctx.font = "700 17px JetBrains Mono"; ctx.fillStyle = "#16A34A"; ctx.fillText("TOP + 4 m", bxp + 22, Y(TALL[2] + 2) + 6);
+    ctx.restore();
+  }
+  // lidar fan: 16 beams, -40..+20 deg
+  const DX = S5.droneX, DY = Y(alt);
+  const pitch = fly > 0 ? -s5Speed(fly) * .45 : 0;
+  const fanA = P(lt, .5, .9);
+  const hits = [];
+  ctx.save(); ctx.globalAlpha = fanA;
+  for (let b = 0; b < 16; b++) {
+    const ang = (-40 + b * 4) * Math.PI / 180;     // positive = up
+    const dir = [Math.cos(ang), -Math.sin(ang)];
+    let hit = null, best = 40 * mpx;
+    // ground
+    if (dir[1] > 0) { const r = (GY - DY) / dir[1]; if (r < best) { best = r; hit = "g"; } }
+    for (const [bx0, bw, bh] of BUILD) {
+      const x0 = X(bx0), x1 = x0 + bw * mpx, y0 = Y(bh);
+      if (x0 > DX) { const r = (x0 - DX) / dir[0]; const y = DY + dir[1] * r; if (y >= y0 && y <= GY && r < best) { best = r; hit = "b"; } }
+      if (dir[1] > 0) { const r = (y0 - DY) / dir[1]; const x = DX + dir[0] * r; if (x >= x0 && x <= x1 && r > 0 && r < best) { best = r; hit = "b"; } }
+    }
+    const ex = DX + dir[0] * best, ey = DY + dir[1] * best;
+    const gr = ctx.createLinearGradient(DX, DY, ex, ey);
+    gr.addColorStop(0, "rgba(249,115,22,.55)"); gr.addColorStop(1, hit === "b" ? "rgba(249,115,22,.5)" : "rgba(249,115,22,.08)");
+    ctx.strokeStyle = gr; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(DX, DY); ctx.lineTo(ex, ey); ctx.stroke();
+    if (hit) hits.push([ex, ey, hit]);
+  }
+  for (const [x, y, k] of hits) { ctx.beginPath(); ctx.arc(x, y, k === "b" ? 5 : 3, 0, 7); ctx.fillStyle = k === "b" ? "#EA580C" : "rgba(234,88,12,.45)"; ctx.fill(); }
+  ctx.restore();
+  // drone trail (altitude history)
+  ctx.save(); ctx.strokeStyle = "#0284C7"; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.beginPath();
+  for (let k = 0; k <= 60; k++) {
+    const tt = fly - k * .05; if (tt < 0) break;
+    const px = DX - (s5World(fly) - s5World(tt)) * mpx; const py = Y(s5Alt(tt));
+    k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+  }
+  ctx.stroke(); ctx.restore();
+  // drone (side view)
+  ctx.save(); ctx.translate(DX, DY); ctx.rotate(pitch * Math.PI / 180); ctx.scale(1.25, 1.25);
+  ctx.fillStyle = "#0E1422"; rr(ctx, -34, -9, 68, 18, 8); ctx.fill();
+  ctx.fillRect(-58, -4, 116, 5);
+  ctx.fillStyle = "#F97316"; rr(ctx, -12, -15, 24, 8, 3); ctx.fill();
+  for (const sx of [-58, 58]) { ctx.fillStyle = "#0E1422"; ctx.fillRect(sx - 3, -14, 6, 12); const sw = 26 + Math.sin(t * 90 + sx) * 6; ctx.fillStyle = "rgba(14,20,34,.35)"; rr(ctx, sx - sw, -18, sw * 2, 4, 2); ctx.fill(); }
+  ctx.fillStyle = "#2A3345"; rr(ctx, -8, 8, 16, 10, 3); ctx.fill();
+  ctx.restore();
+  // readout (top-left, clear of the flight line)
+  const status = s5Status(fly);
+  ctx.save();
+  const bk = ctx.createLinearGradient(0, 0, 460, 0); bk.addColorStop(0, "rgba(255,255,255,.92)"); bk.addColorStop(.8, "rgba(255,255,255,.85)"); bk.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = bk; ctx.fillRect(84, 30, 460, 170);
+  ctx.font = "800 64px Inter"; ctx.fillStyle = "#0E1422"; ctx.textAlign = "left";
+  ctx.fillText(alt.toFixed(1), 110, 104); const aw = ctx.measureText(alt.toFixed(1)).width;
+  ctx.font = "700 26px Inter"; ctx.fillStyle = "#98A2B3"; ctx.fillText("m", 118 + aw, 104);
+  ctx.font = "700 13px JetBrains Mono"; ctx.fillText("ALTITUDE", 112, 130);
+  ctx.font = "700 15px JetBrains Mono";
+  const pillW = ctx.measureText(status[0]).width + 46;
+  rr(ctx, 106, 148, pillW, 40, 20); ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "rgba(14,20,34,.10)"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(128, 168, 5, 0, 7); ctx.fillStyle = status[1]; ctx.fill();
+  ctx.fillStyle = status[1]; ctx.fillText(status[0], 142, 173);
+  ctx.restore();
+  // label beside drone
+  ctx.save(); ctx.globalAlpha = P(lt, .6, 1.0);
+  ctx.font = "700 14px JetBrains Mono"; ctx.fillStyle = "#EA580C"; ctx.textAlign = "left";
+  ctx.fillText("FORWARD LIDAR", DX + 84, DY - 26);
+  ctx.restore();
+}
+
+/* ================================================================ S6 hazard map */
+const S6 = { w: 852, h: 812, k: 15.2, ox: 30, oy: 36 };
+const S6X = m => S6.ox + m * S6.k, S6Y = m => S6.oy + m * S6.k;
+const STRUCT = [[[4, 3], [15, 3], [15, 11], [4, 11]], [[40, 4], [52, 4], [52, 11], [40, 11]], [[3, 41], [11, 41], [11, 50], [3, 50]], [[42, 40], [52, 40], [52, 50], [42, 50]]];
+const FIRE = [31, 23], FLOOD = [12, 31];
+const VICT = [
+  { id: "C-2", p: 1, at: [36, 13] }, { id: "C-1", p: 2, at: [19, 36] }, { id: "C-3", p: 3, at: [31, 44] },
+];
+const STAGE = [2.5, 24];
+const ROUTES = [
+  [[2.5, 24], [6, 19], [12, 13.5], [22, 11], [30, 11], [36, 13]],
+  [[2.5, 24], [4, 30], [6, 37], [11, 40], [17, 38], [19, 36]],
+  [[2.5, 24], [10, 24.5], [19, 26], [24, 33], [28, 40], [31, 44]],
+];
+const TRAIL6 = chaikin([[26, 2], [26, 18], [45, 20], [45, 30], [36, 34], [20, 20], [8, 20], [8, 34], [24, 38], [44, 36], [40, 46], [16, 46]], 3);
+function polyLen(pts) { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; }
+function drawPartial(ctx, pts, frac, tx, ty) {
+  const L = polyLen(pts) * frac; let acc = 0; ctx.beginPath(); ctx.moveTo(tx(pts[0][0]), ty(pts[0][1]));
+  for (let i = 1; i < pts.length; i++) {
+    const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (acc + d >= L) { const u = (L - acc) / d; ctx.lineTo(tx(lerp(pts[i - 1][0], pts[i][0], u)), ty(lerp(pts[i - 1][1], pts[i][1], u))); return; }
+    acc += d; ctx.lineTo(tx(pts[i][0]), ty(pts[i][1]));
+  }
+}
+function blob(ctx, cx, cy, r, wob, seed, tx, ty, k) {
+  ctx.beginPath();
+  for (let a = 0; a <= 64; a++) { const th = a / 64 * 6.283; const rr_ = r * (1 + wob * Math.sin(th * 3 + seed) + wob * .6 * Math.sin(th * 5 + seed * 2)); const x = tx(cx) + Math.cos(th) * rr_ * k, y = ty(cy) + Math.sin(th) * rr_ * k; a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.closePath();
+}
+function drawHazardMap(ctx, t, o) {
+  // o: { W, H, k, ox, oy, t0 (scene start), static }
+  const k = o.k, tx = m => o.ox + m * k, ty = m => o.oy + m * k;
+  const at = (a, b, e = E.outExpo) => o.static ? 1 : P(t, o.t0 + a, o.t0 + b, e);
+  ctx.clearRect(0, 0, o.W, o.H);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, o.W, o.H);
+  // grid
+  ctx.strokeStyle = "rgba(15,23,42,.06)"; ctx.lineWidth = 1;
+  for (let m = 0; m <= 56; m += 4) { ctx.beginPath(); ctx.moveTo(tx(m), 0); ctx.lineTo(tx(m), o.H); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, ty(m)); ctx.lineTo(o.W, ty(m)); ctx.stroke(); }
+  // residual heat
+  const hg = [[20, 30, 9], [38, 30, 7], [28, 8, 6]];
+  for (const [x, y, r] of hg) { const g = ctx.createRadialGradient(tx(x), ty(y), 0, tx(x), ty(y), r * k); g.addColorStop(0, "rgba(253,141,60,.16)"); g.addColorStop(1, "rgba(253,141,60,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, o.W, o.H); }
+  // area
+  ctx.setLineDash([8, 6]); ctx.strokeStyle = "rgba(15,23,42,.45)"; ctx.lineWidth = 1.6; ctx.strokeRect(tx(1), ty(1), 52 * k, 50 * k); ctx.setLineDash([]);
+  // flight trail (context)
+  const trA = at(0, .6);
+  ctx.save(); ctx.globalAlpha = .55 * trA; ctx.strokeStyle = "#0284C7"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+  ctx.beginPath(); TRAIL6.forEach(([x, y], i) => i ? ctx.lineTo(tx(x), ty(y)) : ctx.moveTo(tx(x), ty(y))); ctx.stroke(); ctx.restore();
+  // structures (pre-disaster intel)
+  const sa = at(.45, .9);
+  STRUCT.forEach((poly, i) => {
+    const a = o.static ? 1 : P(t, o.t0 + .45 + i * .06, o.t0 + .85 + i * .06, E.outExpo);
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.beginPath(); poly.forEach(([x, y], j) => j ? ctx.lineTo(tx(x), ty(y)) : ctx.moveTo(tx(x), ty(y))); ctx.closePath();
+    ctx.fillStyle = "rgba(148,163,184,.28)"; ctx.fill(); ctx.save(); ctx.clip();
+    ctx.strokeStyle = "rgba(100,116,139,.35)"; ctx.lineWidth = 1.5; for (let q = -400; q < 900; q += 10) { ctx.beginPath(); ctx.moveTo(q, 0); ctx.lineTo(q + 400, 400 * 2); ctx.stroke(); }
+    ctx.restore(); ctx.strokeStyle = "#94A3B8"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+  });
+  // fire
+  const fa = o.static ? 1 : P(t, o.t0 + .9, o.t0 + 1.4, E.outBack);
+  const ring = o.static ? 0 : (t * 18) % 16;
+  if (fa > 0) {
+    ctx.save(); ctx.globalAlpha = clamp(fa);
+    blob(ctx, FIRE[0], FIRE[1], 7.5 * fa, .04, 1, tx, ty, k); ctx.setLineDash([7, 6]); ctx.lineDashOffset = -ring; ctx.strokeStyle = "rgba(249,115,22,.75)"; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(249,115,22,.06)"; ctx.fill();
+    blob(ctx, FIRE[0], FIRE[1], 3.5 * fa, .12, 1, tx, ty, k);
+    const g = ctx.createRadialGradient(tx(FIRE[0]), ty(FIRE[1]), 0, tx(FIRE[0]), ty(FIRE[1]), 4 * k); g.addColorStop(0, "rgba(234,88,12,.75)"); g.addColorStop(1, "rgba(249,115,22,.35)");
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = "#F97316"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.restore();
+  }
+  // flood
+  const la = o.static ? 1 : P(t, o.t0 + 1.1, o.t0 + 1.6, E.outBack);
+  if (la > 0) {
+    ctx.save(); ctx.globalAlpha = clamp(la);
+    blob(ctx, FLOOD[0], FLOOD[1], 5.8 * la, .06, 4, tx, ty, k); ctx.setLineDash([7, 6]); ctx.lineDashOffset = ring; ctx.strokeStyle = "rgba(59,130,246,.7)"; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+    blob(ctx, FLOOD[0], FLOOD[1], 4.3 * la, .1, 4, tx, ty, k); ctx.fillStyle = "rgba(59,130,246,.35)"; ctx.fill(); ctx.strokeStyle = "#3B82F6"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.restore();
+  }
+  // hazard labels
+  const lab = (txt, x, y, col, a) => { if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.font = "700 13px JetBrains Mono"; const w = ctx.measureText(txt).width + 20; rr(ctx, x - w / 2, y - 14, w, 28, 14); ctx.fillStyle = col; ctx.fill(); ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(txt, x, y + 5); ctx.restore(); };
+  if (!o.static) {
+    lab("FIRE · 4 m BUFFER", tx(FIRE[0]), ty(FIRE[1] + 9.2), "#EA580C", at(1.2, 1.5));
+    lab("FLOOD", tx(FLOOD[0]), ty(FLOOD[1] - 7.5), "#2563EB", at(1.4, 1.7));
+    lab("STRUCTURE", tx(46), ty(7.5), "#64748B", at(.8, 1.1));
+  }
+  // routes
+  ROUTES.forEach((r, i) => {
+    const t0 = i === 0 ? 2.35 : 3.0 + (i - 1) * .25;
+    const fr = o.static ? 1 : P(t, o.t0 + t0, o.t0 + t0 + (i === 0 ? 1.1 : .8), E.inOutCubic);
+    if (fr <= 0) return;
+    ctx.save(); ctx.lineJoin = ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.95)"; ctx.lineWidth = i ? 7 : 9; drawPartial(ctx, r, fr, tx, ty); ctx.stroke();
+    ctx.strokeStyle = i ? "rgba(22,163,74,.6)" : "#16A34A"; ctx.lineWidth = i ? 3 : 4.5; ctx.setLineDash(i ? [2, 8] : [12, 8]); ctx.lineDashOffset = o.static ? 0 : -t * 40; drawPartial(ctx, r, fr, tx, ty); ctx.stroke();
+    ctx.restore();
+  });
+  // staging
+  const st = at(.3, .7, E.outBack);
+  ctx.save(); ctx.translate(tx(STAGE[0]), ty(STAGE[1])); ctx.scale(st, st);
+  rr(ctx, -16, -16, 32, 32, 8); ctx.fillStyle = "#16A34A"; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = "800 15px Inter"; ctx.textAlign = "center"; ctx.fillText("S", 0, 5.5); ctx.restore();
+  // moving casualty drift trail
+  // victims
+  VICT.forEach((v, i) => {
+    const t0 = 1.6 + i * .2;
+    const a = o.static ? 1 : P(t, o.t0 + t0, o.t0 + t0 + .5, E.outBackS);
+    const drop = o.static ? 0 : (1 - P(t, o.t0 + t0, o.t0 + t0 + .45, E.outCubic)) * -40;
+    if (a <= 0) return;
+    let [x, y] = v.at;
+    if (v.p === 3 && !o.static) { x += Math.sin(t * 1.4) * .5; }
+    const X = tx(x), Y = ty(y) + drop;
+    const col = v.p === 1 ? "#DC2626" : "#D97706";
+    const pulse = o.static ? 1 : ((t - o.t0 - t0) % 1.4) / 1.4;
+    if (v.p === 1 && t > o.t0 + t0 + .3) { ctx.beginPath(); ctx.arc(X, Y, 16 + pulse * 30, 0, 7); ctx.strokeStyle = `rgba(220,38,38,${.6 * (1 - pulse)})`; ctx.lineWidth = 3; ctx.stroke(); }
+    ctx.save(); ctx.translate(X, Y); ctx.scale(a, a);
+    ctx.shadowColor = "rgba(14,20,34,.3)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+    ctx.beginPath(); ctx.arc(0, 0, 16, 0, 7); ctx.fillStyle = col; ctx.fill(); ctx.shadowColor = "transparent";
+    ctx.lineWidth = 3; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, -4, 4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(0, 7, 7, 4.5, 0, Math.PI, 0); ctx.fill();
+    // badge
+    ctx.font = "800 13px Inter"; rr(ctx, 12, -30, 34, 22, 11); ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText("P" + v.p, 29, -14.5);
+    ctx.restore();
+  });
+}
+function renderS6(t) {
+  const lt = t - T.s6[0];
+  rise($("s6-over"), t, 31.55, .6);
+  rise($("s6-h1"), t, 31.65, .7); rise($("s6-h2"), t, 31.8, .7);
+  const cp = P(t, 31.5, 32.3, E.outExpo);
+  tf($("s6-card"), { x: (1 - cp) * -110, s: lerp(.95, 1, cp), o: clamp(cp * 1.6) });
+  const cv = $("s6-canvas"), ctx = cv.getContext("2d");
+  drawHazardMap(ctx, t, { W: S6.w, H: S6.h, k: S6.k, ox: S6.ox, oy: S6.oy, t0: T.s6[0] });
+  // aid drop: drone flies to P1, releases the kit
+  const fl = P(t, 36.0, 36.9, E.inOutCubic);
+  if (t > 35.9) {
+    const P1 = VICT[0].at, tgt = [P1[0] - 2.5, P1[1] + 1.2];
+    const x = lerp(20, tgt[0], fl), y = lerp(40, tgt[1], fl);
+    const out = P(t, 38.2, 38.9, E.inCubic);
+    const dx = lerp(x, x - 30, out), dy = lerp(y, y + 10, out);
+    ctx.save(); ctx.globalAlpha = P(t, 35.9, 36.1) * (1 - P(t, 38.6, 38.9));
+    drawDroneTop(ctx, S6X(dx), S6Y(dy), Math.atan2(tgt[1] - 40, tgt[0] - 20), 1.05, t * 40);
+    ctx.restore();
+    // kit
+    const rel = 37.0;
+    if (t > rel) {
+      const fall = P(t, rel, rel + .55, E.outBackS);
+      const s = lerp(1.7, 1, fall);
+      const X = S6X(tgt[0]), Y = S6Y(tgt[1]) + 26;
+      ctx.save(); ctx.translate(X, Y);
+      ctx.fillStyle = `rgba(14,20,34,${.25 * fall})`; ctx.beginPath(); ctx.ellipse(3, 16 * s * .6, 16 * fall, 5 * fall, 0, 0, 7); ctx.fill();
+      ctx.scale(s, s); rr(ctx, -13, -13, 26, 26, 5); ctx.fillStyle = "#16A34A"; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.fillRect(-2.5, -8, 5, 16); ctx.fillRect(-8, -2.5, 16, 5);
+      ctx.restore();
+      const rp = P(t, rel + .2, rel + 1.0, E.outCubic);
+      ctx.beginPath(); ctx.arc(X, Y, 14 + rp * 34, 0, 7); ctx.strokeStyle = `rgba(22,163,74,${.7 * (1 - rp)})`; ctx.lineWidth = 3; ctx.stroke();
+    }
+  }
+  const toast = $("s6-toast");
+  const tp = P(t, 37.2, 37.7, E.outBack), to = P(t, 38.9, 39.2, E.inCubic);
+  toast.style.transform = `translate(-50%, ${(1 - tp) * -30 - to * 20}px) scale(${lerp(.9, 1, tp)})`; toast.style.opacity = clamp(tp * 2) * (1 - to);
+  // triage cards
+  ["v1", "v2", "v3"].forEach((id, i) => slideIn($(id), t, 33.6 + i * .18, .75, { x: 80, y: 0 }));
+  // P1 emphasis
+  const em = P(t, 34.5, 34.9, E.outBack) * (1 - P(t, 35.3, 35.8, E.inOutCubic));
+  $("v1").style.boxShadow = `var(--shadow), 0 0 0 ${3 * em}px rgba(220,38,38,.35)`;
+}
+
+/* ================================================================ S7 SITREP */
+function renderS7(t) {
+  const lt = t - T.s7[0];
+  rise($("s7-over"), t, 39.55, .6);
+  rise($("s7-h1"), t, 39.65, .7); rise($("s7-h2"), t, 39.8, .7);
+  slideIn($("s7-body"), t, 40.1, .8, { y: 20 });
+  const d = $("s7-doc");
+  const dp = P(t, 39.5, 40.5, E.outExpo);
+  d.style.transform = `translateY(${(1 - dp) * 700}px) rotate(${lerp(8, -2.2, dp) + Math.sin(lt * 1.2) * .2}deg)`;
+  d.style.opacity = 1;
+  countTo($("k-c"), t, 40.3, 41.2, 0, 6);
+  countTo($("k-h"), t, 40.4, 41.3, 0, 3);
+  countTo($("k-p"), t, 40.5, 41.5, 0, 90, 0, "%");
+  countTo($("k-t"), t, 40.6, 41.6, 0, 25);
+  countTo($("k-e"), t, 40.7, 41.7, 0, 1.4, 1);
+  const cv = $("s7-canvas"), ctx = cv.getContext("2d");
+  drawHazardMap(ctx, t, { W: 724, H: 340, k: 6.2, ox: 197, oy: 2, t0: 0, static: true });
+  [...$("s7-log").children].forEach((el, i) => { const p = P(t, 41.3 + i * .1, 41.8 + i * .1, E.outExpo); tf(el, { x: (1 - p) * 30, o: p }); });
+  ["r1r", "r2r", "r3r"].forEach((id, i) => { const p = P(t, 40.9 + i * .12, 41.4 + i * .12, E.outExpo); tf($(id), { x: (1 - p) * 30, o: p }); });
+  [["s7-b1", 41.6, -8], ["s7-b2", 41.85, 5], ["s7-b3", 42.1, -4]].forEach(([id, t0, r]) => {
+    const el = $(id); const p = P(t, t0, t0 + .35, E.outBackS);
+    tf(el, { s: lerp(2.2, 1, p), r: r, o: clamp(P(t, t0, t0 + .1)) });
+  });
+}
+
+/* ================================================================ S8 results */
+function renderS8(t) {
+  rise($("s8-over"), t, 44.1, .6, 47.9, .3);
+  rise($("s8-h"), t, 44.2, .7, 47.95, .3);
+  const beats = [44.45, 44.8, 45.15, 45.5];
+  ["t1", "t2", "t3", "t4"].forEach((id, i) => {
+    const el = $(id), t0 = beats[i];
+    const p = P(t, t0, t0 + .6, E.outBackS), pf = P(t, t0, t0 + .15);
+    const out = P(t, 47.85 + i * .06, 48.3 + i * .06, E.inExpo);
+    const cx = 960 - (parseFloat(el.style.left) + 200);
+    tf(el, { y: (1 - p) * 140 - out * 20, x: out * cx * .92, s: lerp(.7, 1, p) * lerp(1, .2, out), o: pf * (1 - P(t, 48.1 + i * .06, 48.3 + i * .06)), r: (1 - p) * (i % 2 ? 4 : -4) });
+  });
+  countTo($("t1n"), t, 44.5, 45.3, 0, 6);
+  countTo($("t2n"), t, 44.85, 45.8, 0, 1.4, 1);
+}
+
+/* ================================================================ S9 end */
+function renderS9(t) {
+  const lt = t - T.s9[0];
+  const d1 = P(lt, .2, 1.0, E.inOutCubic), d2 = P(lt, .75, 1.1, E.outCubic);
+  $("s9-lp1").style.strokeDasharray = lp1Len; $("s9-lp1").style.strokeDashoffset = lp1Len * (1 - d1);
+  $("s9-lp2").style.strokeDasharray = lp2Len; $("s9-lp2").style.strokeDashoffset = lp2Len * (1 - d2);
+  const fillp = P(lt, .95, 1.4, E.outBackS);
+  $("s9-lp1f").style.opacity = clamp(fillp);
+  $("s9-lp1f").style.transformOrigin = "16px 16px"; $("s9-lp1f").style.transform = `scale(${lerp(.4, 1, fillp)})`;
+  tf($("s9-logo"), { s: lerp(.6, 1, P(lt, 0, 1.1, E.outExpo)), o: P(lt, 0, .2) });
+  const w = $("s9-word"); rise(w, lt, 1.0, .75);
+  w.style.letterSpacing = lerp(.45, .2, P(lt, 1.0, 2.1, E.outExpo)) + "em";
+  ["s9-t1", "s9-t2", "s9-t3"].forEach((id, i) => pop($(id), lt, 1.5 + i * .22, .45, { from: .5, y: 16 }));
+  [...$("s9-foot").children].forEach((el, i) => pop(el, lt, 2.2 + i * .08, .5, { from: .7, y: 18 }));
+  slideIn($("s9-sih"), lt, 2.8, .8, { y: 14 });
+  // final fade
+  const f = P(t, DURATION - .55, DURATION - .05, E.inOutCubic);
+  $("s9").style.opacity = 1 - f;
+}
+
+/* ================================================================ HUD + wipes */
+function renderHUD(t) {
+  const on = t >= T.s3[0] - .1 && t < T.s8[0];
+  const hud = $("hud");
+  hud.style.display = on ? "block" : "none";
+  if (!on) return;
+  const a = P(t, T.s3[0], T.s3[0] + .6);
+  hud.style.opacity = a;
+  CHAPTERS.forEach(([, , [a0, a1]], i) => {
+    const pr = clamp((t - a0) / (a1 - a0));
+    $("chb" + i).style.width = pr * 100 + "%";
+    $("ch" + i).classList.toggle("on", t >= a0 && t < a1);
+  });
+  const mt = (t - T.s3[0]) * 30;   // compress mission time for the clock
+  const mm = Math.floor(mt / 60), ss = Math.floor(mt % 60), ff = Math.floor((mt % 1) * 100);
+  $("hud-t").textContent = `T+00:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+  $("hud-rec").style.opacity = (Math.floor(t * 1.4) % 2) ? .25 : 1;
+}
+function renderWipes(t) {
+  const A = $("slabA"), B = $("slabB");
+  let shown = false;
+  for (const tc of WIPES) {
+    if (t < tc - .32 || t > tc + .32) continue;
+    const p = E.inOutQuart(clamp((t - (tc - .32)) / .64));
+    const x = lerp(W + 420, -2600 - 420, p);
+    A.style.display = B.style.display = "block";
+    A.style.transform = `translateX(${x}px) skewX(-14deg)`;
+    B.style.transform = `translateX(${x - 150}px) skewX(-14deg)`;
+    shown = true;
+  }
+  if (!shown) A.style.display = B.style.display = "none";
+}
+
+const SCENES = [["s1", T.s1, renderS1], ["s2", T.s2, renderS2], ["s3", T.s3, renderS3], ["s4", T.s4, renderS4], ["s5", T.s5, renderS5], ["s6", T.s6, renderS6], ["s7", T.s7, renderS7], ["s8", T.s8, renderS8], ["s9", T.s9, renderS9]];
+function renderAt(t) {
+  for (const [id, [a, b], fn] of SCENES) {
+    const on = t >= a && t < b;
+    $(id).style.display = on ? "block" : "none";
+    if (on) fn(t);
+  }
+  renderHUD(t);
+  renderWipes(t);
+}
+
+/* Sound cues, derived from the same timeline the visuals use. */
+function sfxEvents() {
+  const ev = [];
+  const add = (t, type, v = 1) => ev.push({ t: +t.toFixed(3), type, v });
+  [.45, 1.5, 1.75, 2.0, 2.25].forEach((t, i) => add(t, "slam", i === 0 ? 1 : .55));
+  add(2.75, "slam", 1);
+  add(2.6, "riser", 1.3); add(3.9, "impact", 1);
+  add(4.75, "pop", .8); add(4.95, "swish", .5);
+  [5.5, 5.75, 6.0].forEach(t => add(t, "tick", .8));
+  WIPES.forEach(t => add(t, "whoosh", 1));
+  add(8.3, "sweep", .6); add(8.5, "tick", .5); add(8.65, "tick", .5);
+  CASUALTIES.forEach(([cx, cy]) => {
+    let sHit = null;
+    for (let s = 0; s <= path3s.L; s += 1) { const [x, y] = pathAt(path3s, s); if (Math.hypot(x - cx, y - cy) < 9) { sHit = s; break; } }
+    if (sHit !== null) add(FLY3[0] + (FLY3[1] - FLY3[0]) * invInOutSine(sHit / path3s.L), "ping", 1);
+  });
+  add(13.3, "counter", 1.1);
+  add(18.0, "snap", 1); add(18.15, "snap", .8);
+  [19.0, 19.1, 19.4, 19.5, 19.8].forEach(t => add(t, "tick", .6)); add(19.95, "buzz", .8);
+  add(20.3, "confirm", 1); add(20.3, "buzz", .7); add(20.85, "snap", .8); add(21.0, "switch", 1);
+  add(23.1, "slam", .7); add(23.55, "slam", .9);
+  add(26.0, "tick", .5); add(26.12, "tick", .5);
+  for (let f = 0; f < 6; f += .01) if (s5World(f) >= 25) { add(T.s5[0] + .35 + f, "riser", 1.0); break; }
+  add(32.3, "pop", .8); add(32.5, "pop", .8);
+  [33.0, 33.2, 33.4].forEach(t => add(t, "ping", .7));
+  [33.6, 33.78, 33.96].forEach(t => add(t, "tick", .6)); add(33.75, "sweep", .5);
+  add(37.0, "thud", 1); add(37.2, "confirm", .8);
+  add(39.5, "swish", .7);
+  [41.6, 41.85, 42.1].forEach(t => add(t, "stamp", 1));
+  [44.45, 44.8, 45.15, 45.5].forEach(t => add(t, "slam", 1));
+  add(47.85, "swish", .8);
+  add(48.3, "impact", 1.1); add(49.25, "pop", .8);
+  [49.8, 50.02, 50.24].forEach(t => add(t, "tick", .7));
+  return ev.sort((a, b) => a.t - b.t);
+}
+window.sfxEvents = sfxEvents;
+
+window.ready = (async () => {
+  await Promise.all([400, 500, 600, 700, 800, 900].map(w => document.fonts.load(`${w} 40px Inter`)));
+  await Promise.all([500, 600, 700].map(w => document.fonts.load(`${w} 20px "JetBrains Mono"`)));
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+  buildFeed();
+  window.renderAt = renderAt;
+  window.DURATION = DURATION;
+  const q = new URLSearchParams(location.search);
+  renderAt(parseFloat(q.get("t") || "0"));
+  return true;
+})();
+</script>
+</body>
+</html>

@@ -75,7 +75,6 @@
     <scene>
       <ambient>0.15 0.15 0.15</ambient>
       <background>0.62 0.58 0.52</background>
-      <sky></sky>
     </scene>
 
     <light type="directional" name="fill">
@@ -86,10 +85,17 @@
       <direction>0 0 -1</direction>
     </light>
 
-    <!-- Background temperature for the thermal camera (15 C). -->
+    <!-- Background temperature for the thermal camera (15 C). Objects
+         with no thermal plugin render at this temperature, varied by how
+         bright their texture is; Gazebo scales that spread with
+         temperature_gradient. At the real-atmosphere -0.0065 K/m, white
+         stones in the rubble read up to 347 K (hotter than a person) and
+         dark ones hit the camera's 250 K floor, so the thermal model saw
+         "people" all over the debris. -0.0003 gives a realistic
+         ~285-289 K spread. -->
     <atmosphere type="adiabatic">
       <temperature>288</temperature>
-      <temperature_gradient>-0.0065</temperature_gradient>
+      <temperature_gradient>-0.0003</temperature_gradient>
     </atmosphere>
 
     <!-- Must match SUN_DIRECTION_ENU in mavlink_bridge.py. -->
@@ -106,6 +112,21 @@
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
+
+    <!-- Sky: two emissive domes instead of <sky>, which can't change while
+         the sim runs. The command center's night mode moves sky_day out of
+         sight and sky_night to the origin (and back for day); the poses here
+         and in server.py's NIGHT_POSES must match. -->
+    <include>
+      <name>sky_day</name>
+      <uri>model://sky_dome</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>sky_night</name>
+      <uri>model://sky_dome_night</uri>
+      <pose>0 0 -100000 0 0 0</pose>
+    </include>
 
     <spherical_coordinates>
       <latitude_deg>-35.3632621</latitude_deg>
@@ -299,6 +320,76 @@
       </link>
     </model>
 
+    <!-- ============ Flood water (hazard detector target) ============ -->
+    <!-- Standing floodwater from a burst main beside the wrecked pickup:
+         three overlapping flat discs, ~7 x 6 m, glassy and dark to the RGB
+         camera and 279 K (6 C) to the thermal camera, below the ground's
+         ~285-289 K. person_detector.py maps it only when both agree
+         (cold AND textureless) by day. Visual only, like a puddle. -->
+    <model name="flood_water">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="link">
+        <visual name="pool_main"><pose>26.5 0.5 0.03 0 0 0</pose><geometry><cylinder><radius>2.8</radius><length>0.02</length></cylinder></geometry><material><ambient>0.10 0.13 0.13 1</ambient><diffuse>0.16 0.20 0.19 1</diffuse><specular>0.7 0.7 0.7 1</specular><pbr><metal><roughness>0.08</roughness><metalness>0.0</metalness></metal></pbr></material><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>279.0</temperature></plugin></visual>
+        <visual name="pool_sw"><pose>24.3 -1.6 0.03 0 0 0</pose><geometry><cylinder><radius>2.0</radius><length>0.02</length></cylinder></geometry><material><ambient>0.10 0.13 0.13 1</ambient><diffuse>0.16 0.20 0.19 1</diffuse><specular>0.7 0.7 0.7 1</specular><pbr><metal><roughness>0.08</roughness><metalness>0.0</metalness></metal></pbr></material><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>279.0</temperature></plugin></visual>
+        <visual name="pool_ne"><pose>28.0 2.6 0.03 0 0 0</pose><geometry><cylinder><radius>1.7</radius><length>0.02</length></cylinder></geometry><material><ambient>0.10 0.13 0.13 1</ambient><diffuse>0.16 0.20 0.19 1</diffuse><specular>0.7 0.7 0.7 1</specular><pbr><metal><roughness>0.08</roughness><metalness>0.0</metalness></metal></pbr></material><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>279.0</temperature></plugin></visual>
+      </link>
+    </model>
+
+    <!-- ============ Second casualty ============ -->
+    <!-- Same actor and heat body as test_person, lying by the debris east
+         of the street. With on_confirm "continue" the drone marks the
+         first casualty and goes on to find this one. Keep casualty_2 and
+         casualty_2_heat at the same x/y/yaw. -->
+    <actor name="casualty_2">
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name="stand">
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/stand.dae</filename>
+        <scale>1.0</scale>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <auto_start>true</auto_start>
+        <trajectory id="0" type="stand">
+          <waypoint>
+            <time>0</time>
+            <pose>22 21.5 0.15 0 -1.5708 2.3</pose>
+          </waypoint>
+          <waypoint>
+            <time>30</time>
+            <pose>22 21.5 0.15 0 -1.5708 2.3</pose>
+          </waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <model name="casualty_2_heat"><static>true</static><pose>22 21.5 0.27 0 0 2.3</pose>
+      <link name="body">
+        <visual name="head"><pose>-0.55 0 0 0 0 0</pose><geometry><sphere><radius>0.123</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="neck"><pose>-0.42 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.056</radius><length>0.08</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="torso"><pose>-0.15 0 0 0 0 0</pose><geometry><box><size>0.515 0.381 0.2</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="pelvis"><pose>0.12 0 0 0 0 0</pose><geometry><box><size>0.2 0.336 0.18</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="leg_l"><pose>0.6 0.13 0 0 1.5708 0.12</pose><geometry><cylinder><radius>0.078</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="leg_r"><pose>0.6 -0.13 0 0 1.5708 -0.12</pose><geometry><cylinder><radius>0.078</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="arm_l"><pose>-0.02 0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.050</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="arm_r"><pose>-0.02 -0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.050</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="hand_l"><pose>0.34 0.25 0 0 0 0</pose><geometry><sphere><radius>0.055</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="hand_r"><pose>0.34 -0.25 0 0 0 0</pose><geometry><sphere><radius>0.055</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+      </link>
+    </model>
+
+    <!-- ============ Animals (thermal test targets) ============ -->
+    <!-- Two sitting dogs with a fur heat signature of 302-307 K: warm,
+         person-sized blobs to thermal, so they test whether the thermal
+         detector tells an animal from a casualty. dog_open is in the open
+         on an early search lane; dog_rubble sits by the rubble on the east
+         side. Both are well clear of the casualty and the landing spot. -->
+    <include><name>dog_open</name><uri>model://dog</uri><pose>-3 12 0 0 0 1.0</pose></include>
+    <include><name>dog_rubble</name><uri>model://dog</uri><pose>16 26 0 0 0 -2.2</pose></include>
+
     <!-- ============ Casualty, heat body, payload (as in runway.sdf) ============ -->
 
     <!-- Casualty lying face-up in the street among the debris. See
@@ -329,18 +420,21 @@
       </script>
     </actor>
 
-    <!-- Body heat for test_person (thermal camera only); must keep the
-         same x/y/yaw as test_person. Copied from runway.sdf. -->
-    <model name="test_person_heat"><static>true</static><pose>10 15 0.15 0 0 0.7</pose>
+    <!-- Body heat for test_person (thermal camera only; skin 309 K,
+         clothing 305 K, raised just above the mesh - see runway.sdf).
+         Must keep the same x/y/yaw as test_person. -->
+    <model name="test_person_heat"><static>true</static><pose>10 15 0.27 0 0 0.7</pose>
       <link name="body">
-        <visual name="head"><pose>-0.55 0 0 0 0 0</pose><geometry><sphere><radius>0.11</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="neck"><pose>-0.42 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.05</radius><length>0.08</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="torso"><pose>-0.15 0 0 0 0 0</pose><geometry><box><size>0.46 0.34 0.2</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="pelvis"><pose>0.12 0 0 0 0 0</pose><geometry><box><size>0.2 0.3 0.18</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="leg_l"><pose>0.6 0.13 0 0 1.5708 0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="leg_r"><pose>0.6 -0.13 0 0 1.5708 -0.12</pose><geometry><cylinder><radius>0.07</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="arm_l"><pose>-0.02 0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
-        <visual name="arm_r"><pose>-0.02 -0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.045</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>310.0</temperature></plugin></visual>
+        <visual name="head"><pose>-0.55 0 0 0 0 0</pose><geometry><sphere><radius>0.123</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="neck"><pose>-0.42 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.056</radius><length>0.08</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="torso"><pose>-0.15 0 0 0 0 0</pose><geometry><box><size>0.515 0.381 0.2</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="pelvis"><pose>0.12 0 0 0 0 0</pose><geometry><box><size>0.2 0.336 0.18</size></box></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="leg_l"><pose>0.6 0.13 0 0 1.5708 0.12</pose><geometry><cylinder><radius>0.078</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="leg_r"><pose>0.6 -0.13 0 0 1.5708 -0.12</pose><geometry><cylinder><radius>0.078</radius><length>0.9</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="arm_l"><pose>-0.02 0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.050</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="arm_r"><pose>-0.02 -0.24 0 0 1.5708 0</pose><geometry><cylinder><radius>0.050</radius><length>0.66</length></cylinder></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>305.0</temperature></plugin></visual>
+        <visual name="hand_l"><pose>0.34 0.25 0 0 0 0</pose><geometry><sphere><radius>0.055</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
+        <visual name="hand_r"><pose>0.34 -0.25 0 0 0 0</pose><geometry><sphere><radius>0.055</radius></sphere></geometry><transparency>1.0</transparency><cast_shadows>false</cast_shadows><plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal"><temperature>309.0</temperature></plugin></visual>
       </link>
     </model>
 

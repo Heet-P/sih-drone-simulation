@@ -29,4 +29,15 @@ export PATH="$PATH:$ROOT/ardu_ws/src/Micro-XRCE-DDS-Gen/scripts"
 unset QT_PLUGIN_PATH
 export QT_QPA_PLATFORM_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/qt5/plugins/platforms"
 
+# Render on the NVIDIA GPU. On a hybrid (Intel + NVIDIA, PRIME on-demand)
+# laptop, Gazebo's headless/EGL rendering otherwise falls back to Mesa and
+# then to software rendering ("libEGL warning: egl: failed to create dri2
+# screen"), so every camera frame and lidar scan is drawn by the CPU:
+# measured 0.62x real time and a ~4 fps feed. No-op without the NVIDIA driver.
+if [ -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json ]; then
+  export __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json
+  export __NV_PRIME_RENDER_OFFLOAD=1
+  export __GLX_VENDOR_LIBRARY_NAME=nvidia
+fi
+
 exec "$@"

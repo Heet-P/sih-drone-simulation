@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- night sky: an inward-facing 400 m dome (mesh in model://sky_dome)
+       lit only by its emissive texture, so it looks the same whatever the
+       lights do. Worlds include both domes and remove <sky>; the command
+       center moves the inactive one out of sight (z = -100000). Kept
+       within 1000 m of the view, the Gazebo GUI's default far clip. -->
+  <model name="sky_dome_night">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry><mesh><uri>model://sky_dome/meshes/dome.dae</uri><scale>400 400 400</scale></mesh></geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <specular>0 0 0 1</specular>
+          <emissive>1 1 1 1</emissive>
+          <pbr>
+            <metal>
+              <albedo_map>model://sky_dome/materials/textures/sky_night.jpg</albedo_map>
+              <emissive_map>model://sky_dome/materials/textures/sky_night.jpg</emissive_map>
+              <roughness>1</roughness>
+              <metalness>0</metalness>
+            </metal>
+          </pbr>
+        </material>
+        <!-- Clear sky is cold to a thermal camera. -->
+        <plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal">
+          <temperature>240.0</temperature>
+        </plugin>
+      </visual>
+    </link>
+  </model>
+</sdf>

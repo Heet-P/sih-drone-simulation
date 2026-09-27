@@ -8,6 +8,31 @@
   "search": {
     "width_m": 40,
     "height_m": 40,
-    "altitude_m": 8
-  }
+    "altitude_m": 8,
+    "planner": "bayes",
+    "on_confirm": "continue",
+    "target_pos": 0.9,
+    "max_search_s": 900
+  },
+  "_local_frame": "Everything below is in metres east/north of the drone's launch point.",
+  "staging": {"east_m": -7, "north_m": -3, "label": "Ambulance / team staging"},
+  "prior_zones": [
+    {"label": "Rubble spill, main street", "east_m": 12, "north_m": 17, "radius_m": 4, "weight": 3},
+    {"label": "Debris field centre", "east_m": 16.5, "north_m": 20.5, "radius_m": 4, "weight": 2.5},
+    {"label": "Debris north-west", "east_m": 4, "north_m": 22.5, "radius_m": 4, "weight": 2},
+    {"label": "Debris west", "east_m": -6, "north_m": 14, "radius_m": 5, "weight": 2},
+    {"label": "Debris east", "east_m": 24, "north_m": 12, "radius_m": 4, "weight": 2},
+    {"label": "Debris north", "east_m": 10, "north_m": 30, "radius_m": 5, "weight": 2},
+    {"label": "Spill from police station", "east_m": -15, "north_m": 22, "radius_m": 5, "weight": 1.5},
+    {"label": "Spill from industrial unit", "east_m": 33, "north_m": 24, "radius_m": 5, "weight": 1.5}
+  ],
+  "known_hazards": [
+    {"type": "structure", "label": "Collapsed police station", "east_m": -30, "north_m": 15, "radius_m": 10},
+    {"type": "structure", "label": "Collapsed fire station", "east_m": 9, "north_m": 53, "radius_m": 10},
+    {"type": "structure", "label": "Collapsed industrial unit", "east_m": 48, "north_m": 22, "radius_m": 12},
+    {"type": "structure", "label": "Collapsed house", "east_m": 14, "north_m": -22, "radius_m": 6},
+    {"type": "structure", "label": "Collapsed house", "east_m": -30, "north_m": -20, "radius_m": 6},
+    {"type": "structure", "label": "Collapsed house", "east_m": 46, "north_m": -18, "radius_m": 6},
+    {"type": "structure", "label": "Collapsed house", "east_m": -30, "north_m": 50, "radius_m": 6}
+  ]
 }

@@ -1,0 +1,59 @@
+{
+  "seed": 3,
+  "casualties": [
+    {
+      "id": "C1",
+      "x": -17.47,
+      "y": -55.95,
+      "yaw": 0.53,
+      "where": "field",
+      "pose": "crawling",
+      "seed": 3
+    },
+    {
+      "id": "C2",
+      "x": 60.57,
+      "y": 79.05,
+      "yaw": 2.24,
+      "where": "street",
+      "pose": "waving",
+      "seed": 3
+    },
+    {
+      "id": "C3",
+      "x": -87.86,
+      "y": -90.43,
+      "yaw": 2.27,
+      "where": "field",
+      "pose": "sitting",
+      "seed": 3
+    },
+    {
+      "id": "C4",
+      "x": -90.37,
+      "y": -64.78,
+      "yaw": 1.34,
+      "where": "field",
+      "pose": "sitting",
+      "seed": 3
+    },
+    {
+      "id": "C5",
+      "x": 85.4,
+      "y": 90.94,
+      "yaw": -0.11,
+      "where": "rubble",
+      "pose": "crawling",
+      "seed": 3
+    },
+    {
+      "id": "C6",
+      "x": -61.42,
+      "y": 56.82,
+      "yaw": 1.89,
+      "where": "clearing",
+      "pose": "lying",
+      "seed": 3
+    }
+  ]
+}

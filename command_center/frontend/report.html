@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAR Situation Report</title>
+  <style>
+    :root { --text: #0f172a; --dim: #64748b; --line: #e2e8f0; --bad: #dc2626; --warn: #b45309; --good: #15803d; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f1f5f9; color: var(--text); font: 14px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .page { max-width: 980px; margin: 24px auto; background: #fff; padding: 32px 40px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid var(--text); padding-bottom: 12px; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: 0.02em; }
+    .sub { color: var(--dim); font-size: 13px; }
+    .stamp { text-align: right; font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--dim); }
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 18px 0; }
+    .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+    .kpi b { display: block; font-size: 20px; }
+    .kpi span { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; margin: 26px 0 8px; }
+    canvas { width: 100%; aspect-ratio: 4 / 3; border: 1px solid var(--line); border-radius: 8px; display: block; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--dim); }
+    .prio { font-weight: 800; color: #fff; background: var(--warn); border-radius: 999px; padding: 1px 8px; }
+    .prio.p1 { background: var(--bad); }
+    .mono { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+    .risk { color: var(--warn); }
+    .action { color: var(--good); }
+    .lvl-critical { color: var(--bad); font-weight: 600; }
+    .lvl-warn { color: var(--warn); }
+    .toolbar { max-width: 980px; margin: 16px auto 0; display: flex; gap: 8px; justify-content: flex-end; }
+    button { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; }
+    button.primary { background: var(--text); color: #fff; border-color: var(--text); }
+    .note { color: var(--dim); font-size: 12px; margin-top: 18px; }
+    .error { color: var(--bad); padding: 40px; text-align: center; }
+    @media print {
+      body { background: #fff; }
+      .toolbar { display: none; }
+      .page { box-shadow: none; margin: 0; max-width: none; padding: 0; }
+      h2 { break-after: avoid; }
+      tr { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="refresh">Refresh</button>
+    <button id="print" class="primary">Print / Save as PDF</button>
+  </div>
+  <div class="page" id="page"><p class="sub">Loading mission data&hellip;</p></div>
+
+  <script src="map.js"></script>
+  <script>
+    const LEVELS = { critical: "CRITICAL", warn: "WARNING", info: "INFO" };
+
+    function dmy(date) {
+      return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    }
+
+    function build(d) {
+      window.lastData = d;
+      const victims = [...(d.victims || [])].sort((a, b) => (a.priority || 99) - (b.priority || 99));
+      const found = (d.hazards || []).filter((h) => h.source !== "intel");
+      const intel = (d.hazards || []).filter((h) => h.source === "intel");
+      const cfg = d.config || {};
+      const planner = cfg.planner === "grid" ? "Lawnmower grid" : "Probability map (Bayesian)";
+      const generated = new Date();
+
+      document.getElementById("page").innerHTML = `
+        <header>
+          <div>
+            <h1>SITUATION REPORT &middot; ${escapeHtml(d.mission_id || "NO MISSION")}</h1>
+            <div class="sub">Autonomous SAR drone &middot; generated on-board, no network required</div>
+          </div>
+          <div class="stamp">${dmy(generated)}<br>Mission time T+${fmtTime(d.t)}<br>Stage: ${escapeHtml(d.stage)}</div>
+        </header>
+        <div class="kpis">
+          <div class="kpi"><b>${victims.length}</b><span>Casualties located</span></div>
+          <div class="kpi"><b>${found.length}</b><span>Hazards detected</span></div>
+          <div class="kpi"><b>${typeof d.pos === "number" ? (d.pos * 100).toFixed(0) + "%" : "—"}</b><span>Prob. of success</span></div>
+          <div class="kpi"><b>${d.prob ? `${d.prob.w}&times;${d.prob.h} m` : "—"}</b><span>Search area</span></div>
+          <div class="kpi"><b>${d.sensor === "night" ? "Thermal" : "RGB + thermal"}</b><span>Sensors</span></div>
+        </div>
+        <div class="sub">Planner: ${planner}. Origin (launch point): ${d.origin[0].toFixed(6)}, ${d.origin[1].toFixed(6)}. Local positions are metres east (E) / north (N) of it.</div>
+
+        <h2>Map</h2>
+        <canvas id="map"></canvas>
+
+        <h2>Rescue priorities</h2>
+        ${victims.length ? `<table>
+          <tr><th>Priority</th><th>Casualty</th><th>Location</th><th>Detection</th><th>Threats</th><th>Recommended action</th></tr>
+          ${victims.map((v) => `<tr>
+            <td><span class="prio ${v.priority === 1 ? "p1" : ""}">P${v.priority || "?"}</span></td>
+            <td><b>${v.id}</b><br><span class="mono">found T+${fmtTime(v.found_s)}</span></td>
+            <td class="mono">${v.lat.toFixed(6)}, ${v.lon.toFixed(6)}<br>E${v.e.toFixed(1)} N${v.n.toFixed(1)} m</td>
+            <td>${v.sensor.toUpperCase()} ${v.conf.toFixed(2)}<br><span class="mono">${escapeHtml(v.evidence)} while hovering</span>${v.moving ? "<br><b>Moving (responsive)</b>" : "<br>Not moving"}${v.aid_dropped ? "<br>Aid kit dropped" : ""}</td>
+            <td class="risk">${v.risks && v.risks.length ? escapeHtml(v.risks.join("; ")) : "None nearby"}</td>
+            <td class="action">${escapeHtml(v.action || "")}</td>
+          </tr>`).join("")}
+        </table>` : '<p class="sub">No casualties confirmed.</p>'}
+
+        <h2>Hazards</h2>
+        <table>
+          <tr><th>ID</th><th>Hazard</th><th>Location</th><th>Size</th><th>Reading</th><th>Source</th></tr>
+          ${[...found, ...intel].map((h) => `<tr>
+            <td><b>${escapeHtml(h.id)}</b></td>
+            <td>${escapeHtml(h.label)}</td>
+            <td class="mono">E${h.e.toFixed(1)} N${h.n.toFixed(1)} m</td>
+            <td>~${(2 * h.radius).toFixed(0)} m across</td>
+            <td>${h.peak_k ? `${(h.peak_k - 273.15).toFixed(0)} &deg;C` : "—"}</td>
+            <td>${h.source === "intel" ? "Pre-mission intel" : `Drone (${h.sensors.join(" + ").toUpperCase()}), seen ${h.hits}&times;`}</td>
+          </tr>`).join("")}
+        </table>
+
+        <h2>Mission log</h2>
+        <table>
+          <tr><th>Time</th><th>Level</th><th>Event</th></tr>
+          ${(d.events || []).map((e) => `<tr>
+            <td class="mono">T+${fmtTime(e.t)}</td>
+            <td class="lvl-${e.level}">${LEVELS[e.level] || e.level}</td>
+            <td>${escapeHtml(e.text)}</td>
+          </tr>`).join("")}
+        </table>
+        <p class="note">Safe ground routes avoid each hazard by its safety buffer (fire 4 m, flood water 1.5 m, collapsed structures 3 m).
+          Priorities rank casualties by nearby threats, then by how quickly a team on foot can reach them.</p>`;
+
+      drawMap(document.getElementById("map"), d, { theme: "light", now: 0 });
+    }
+
+    async function load() {
+      try {
+        const res = await fetch("/api/map/latest");
+        const d = await res.json();
+        if (!res.ok || d.ok === false) throw new Error(d.message || res.statusText);
+        build(d);
+      } catch (err) {
+        document.getElementById("page").innerHTML = `<p class="error">No mission data: ${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    document.getElementById("refresh").onclick = load;
+    document.getElementById("print").onclick = () => window.print();
+    window.addEventListener("beforeprint", () => {
+      const c = document.getElementById("map");
+      if (c && window.lastData) drawMap(c, window.lastData, { theme: "light", now: 0 });
+    });
+    load();
+  </script>
+</body>
+</html>

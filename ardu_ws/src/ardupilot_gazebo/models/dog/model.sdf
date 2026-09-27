@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!--
+Mesh and texture: "Dog" by Google (Google Scanned Objects), CC BY 4.0.
+See model.config.
+-->
+<sdf version="1.9">
+  <model name="dog">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://dog/meshes/model.obj</uri>
+            <scale>3.5 3.5 3.5</scale>
+          </mesh>
+        </geometry>
+        <!-- A dog's core is ~311.5 K (38.5 C), but through fur the surface
+             reads ~302-307 K (29-34 C). heat_signature.png is the blurred
+             grey of the texture, mapped onto that range. -->
+        <plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal">
+          <heat_signature>model://dog/materials/textures/heat_signature.png</heat_signature>
+          <min_temp>302.0</min_temp>
+          <max_temp>307.0</max_temp>
+        </plugin>
+      </visual>
+    </link>
+  </model>
+</sdf>

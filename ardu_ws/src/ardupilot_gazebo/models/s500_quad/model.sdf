@@ -545,6 +545,10 @@
           </clip>
         </camera>
         <always_on>1</always_on>
+        <!-- 10 Hz, not more: at 20 Hz both cameras together with the Gazebo
+             GUI made the sim stall (real-time factor dips to 0.1-0.4 while
+             flying, the drone visibly stopping and jumping); at 10 Hz it
+             matches the pre-lidar model (dips no lower than ~0.66). -->
         <update_rate>10</update_rate>
         <visualize>1</visualize>
       </sensor>
@@ -580,6 +584,57 @@
         </plugin>
       </sensor>
     </link>
+    <!-- Obstacle sensing for altitude control (mavlink_bridge.py's
+         ObstacleGuard). A forward 3D lidar, 48 x 16 beams over +-34 deg
+         horizontally and -40..+20 deg vertically, 40 m range, sees what
+         is in the flight path; a single-beam rangefinder looking straight
+         down gives the height above whatever is below (ground or roof).
+         Real-hardware equivalents: a small solid-state lidar (e.g. a
+         Livox Mid-40 class unit) and a TFmini-style rangefinder. -->
+    <link name="obstacle_sensor_link">
+      <pose>0.24 0 0 0 0 0</pose>
+      <inertial>
+        <mass>0.03</mass>
+        <inertia><ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz></inertia>
+      </inertial>
+      <visual name="lidar_visual">
+        <geometry><box><size>0.04 0.06 0.03</size></box></geometry>
+        <material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <sensor name="obstacle_lidar" type="gpu_lidar">
+        <gz_frame_id>obstacle_sensor_link</gz_frame_id>
+        <topic>/s500/obstacle_lidar</topic>
+        <update_rate>10</update_rate>
+        <always_on>1</always_on>
+        <visualize>0</visualize>
+        <lidar>
+          <scan>
+            <horizontal><samples>48</samples><resolution>1</resolution><min_angle>-0.6</min_angle><max_angle>0.6</max_angle></horizontal>
+            <vertical><samples>16</samples><resolution>1</resolution><min_angle>-0.7</min_angle><max_angle>0.35</max_angle></vertical>
+          </scan>
+          <range><min>0.6</min><max>40</max><resolution>0.02</resolution></range>
+        </lidar>
+      </sensor>
+      <sensor name="down_range" type="gpu_lidar">
+        <gz_frame_id>obstacle_sensor_link</gz_frame_id>
+        <pose>0 0 -0.03 0 1.5708 0</pose>
+        <topic>/s500/down_range</topic>
+        <update_rate>10</update_rate>
+        <always_on>1</always_on>
+        <visualize>0</visualize>
+        <lidar>
+          <scan>
+            <horizontal><samples>1</samples><resolution>1</resolution><min_angle>0</min_angle><max_angle>0</max_angle></horizontal>
+          </scan>
+          <range><min>0.1</min><max>60</max><resolution>0.02</resolution></range>
+        </lidar>
+      </sensor>
+    </link>
+    <joint name="obstacle_sensor_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>obstacle_sensor_link</child>
+    </joint>
+
     <joint name="pitch_joint" type="fixed">
       <parent>base_link</parent>
       <child>pitch_link</child>
